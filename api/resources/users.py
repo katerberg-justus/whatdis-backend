@@ -1,0 +1,46 @@
+from flask import request
+from flask_restful import Resource
+from flask_jwt_extended import jwt_required
+from sqlalchemy.exc import IntegrityError
+from api import db, limiter
+from api.models.user import User
+
+
+class UserListResource(Resource):
+    """POST /users — public registration."""
+
+    def post(self):
+        data = request.get_json(silent=True) or {}
+        missing = [f for f in ("name", "email", "password") if not data.get(f)]
+        if missing:
+            return {"error": f"Missing fields: {', '.join(missing)}"}, 400
+
+        user = User(name=data["name"], email=data["email"])
+        user.set_password(data["password"])
+        db.session.add(user)
+        try:
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
+            return {"error": "Email already registered"}, 409
+
+        return _serialize(user), 201
+
+
+class UserResource(Resource):
+    """GET /users/<id> — look up any user by id (friends need this)."""
+    decorators = [jwt_required(), limiter.limit("30 per minute")]
+
+    def get(self, user_id):
+        user = db.get_or_404(User, user_id)
+        return _serialize(user), 200
+
+
+def _serialize(u: User) -> dict:
+    return {
+        "id": u.id,
+        "name": u.name,
+        "email": u.email,
+        "created_at": u.created_at.isoformat() if u.created_at else None,
+        "updated_at": u.updated_at.isoformat() if u.updated_at else None,
+    }
