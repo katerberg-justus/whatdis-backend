@@ -20,6 +20,7 @@ class Guess(BaseModel):
         index=True,
     )
     content = db.Column(Text, nullable=False)
+    # 0=no, 1=yes, 2=indecisive, 3=refusal, 4=win  (see api.common.response_codes)
     response_code = db.Column(TINYINT(unsigned=True), nullable=False)
 
     game = db.relationship("Game", back_populates="guesses")

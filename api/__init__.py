@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, request as flask_request
 from flask_restful import Api
 from flask_jwt_extended import JWTManager
 from flask_limiter import Limiter
@@ -6,6 +6,7 @@ from flask_limiter.util import get_remote_address
 from flask_caching import Cache
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+from flask_cors import CORS
 from dotenv import load_dotenv
 import os
 
@@ -16,6 +17,7 @@ migrate = Migrate()
 jwt = JWTManager()
 cache = Cache()
 limiter = Limiter(key_func=get_remote_address)
+cors = CORS()
 
 
 def create_app(config=None):
@@ -39,6 +41,13 @@ def create_app(config=None):
     app.config["JWT_REFRESH_TOKEN_EXPIRES"] = int(
         os.environ.get("JWT_REFRESH_TOKEN_EXPIRES", 2592000)
     )
+    app.config["JWT_TOKEN_LOCATION"] = ["cookies"]
+    app.config["JWT_COOKIE_SECURE"] = os.environ.get("FLASK_ENV") == "production"
+    app.config["JWT_COOKIE_SAMESITE"] = os.environ.get("JWT_COOKIE_SAMESITE", "Lax")
+    app.config["JWT_SESSION_COOKIE"] = False
+    app.config["JWT_COOKIE_CSRF_PROTECT"] = True
+    app.config["JWT_ACCESS_CSRF_HEADER_NAME"] = "X-CSRF-TOKEN"
+    app.config["JWT_REFRESH_CSRF_HEADER_NAME"] = "X-CSRF-TOKEN"
     app.config["CACHE_TYPE"] = "RedisCache"
     app.config["CACHE_REDIS_HOST"] = os.environ.get("REDIS_HOST", "localhost")
     app.config["CACHE_REDIS_PORT"] = int(os.environ.get("REDIS_PORT", 6379))
@@ -49,6 +58,19 @@ def create_app(config=None):
 
     if config:
         app.config.update(config)
+
+    _origins = [o.strip() for o in os.environ.get("CORS_ORIGINS", "http://localhost:3000").split(",")]
+    cors.init_app(app,
+        origins=_origins,
+        supports_credentials=True,
+        allow_headers=["Content-Type", "X-CSRF-TOKEN"],
+    )
+
+    # Preflight requests must never reach JWT or rate-limit middleware.
+    @app.before_request
+    def _handle_options():
+        if flask_request.method == "OPTIONS":
+            return {}, 200
 
     db.init_app(app)
     jwt.init_app(app)

@@ -1,0 +1,41 @@
+from sqlalchemy import ForeignKey
+from sqlalchemy.dialects.mysql import CHAR, TINYINT
+from api import db
+from api.common.base_model import BaseModel
+
+PENDING  = 0  # waiting for opponent to accept
+ACTIVE   = 1  # both players in, guessing in progress
+FINISHED = 2  # a player submitted a winning guess
+
+
+class Battle(BaseModel):
+    __tablename__ = "battles"
+
+    challenge_id = db.Column(CHAR(36), nullable=False, index=True)
+
+    player1_id = db.Column(
+        CHAR(36), ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False, index=True,
+    )
+    player2_id = db.Column(
+        CHAR(36), ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False, index=True,
+    )
+    current_turn_id = db.Column(
+        CHAR(36), ForeignKey("users.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+    winner_id = db.Column(
+        CHAR(36), ForeignKey("users.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+    # 0 = pending, 1 = active, 2 = finished
+    status = db.Column(TINYINT(unsigned=True), nullable=False, default=PENDING)
+
+    player1 = db.relationship("User", foreign_keys=[player1_id])
+    player2 = db.relationship("User", foreign_keys=[player2_id])
+    guesses = db.relationship(
+        "BattleGuess", back_populates="battle",
+        lazy="dynamic", cascade="all, delete-orphan",
+        order_by="BattleGuess.turn_number",
+    )

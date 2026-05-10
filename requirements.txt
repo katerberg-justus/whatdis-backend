@@ -10,3 +10,4 @@ redis==7.4.0
 python-dotenv==1.2.2
 marshmallow==4.3.0
 flask-migrate==4.1.0
+flask-cors==6.0.2

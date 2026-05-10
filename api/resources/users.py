@@ -22,7 +22,7 @@ class UserListResource(Resource):
             db.session.commit()
         except IntegrityError:
             db.session.rollback()
-            return {"error": "Email already registered"}, 409
+            return {"error": "Username or email already taken"}, 409
 
         return _serialize(user), 201
 
