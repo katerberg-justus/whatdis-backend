@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from sqlalchemy import String, DateTime
+from sqlalchemy import String, DateTime, Integer, Date, Boolean
 from werkzeug.security import generate_password_hash, check_password_hash
 from api import db
 from api.common.base_model import BaseModel
@@ -9,9 +9,13 @@ class User(BaseModel):
     __tablename__ = "users"
 
     name = db.Column(String(120), nullable=False, unique=True, index=True)
-    email = db.Column(String(255), nullable=False, unique=True, index=True)
-    password_hash = db.Column(String(255), nullable=False)
-    subscription_expires_at = db.Column(DateTime, nullable=True)
+    email = db.Column(String(255), nullable=True, unique=True, index=True)
+    password_hash = db.Column(String(255), nullable=True)
+    is_guest = db.Column(Boolean, nullable=False, default=True)
+    subscription_expires_at  = db.Column(DateTime, nullable=True)
+    # Subscriber carry-over energy — null for non-subscribers
+    energy_balance           = db.Column(Integer, nullable=True)
+    energy_replenished_date  = db.Column(Date, nullable=True)
 
     games = db.relationship("Game", back_populates="user", lazy="dynamic")
     guesses = db.relationship("Guess", back_populates="user", lazy="dynamic")
@@ -27,6 +31,10 @@ class User(BaseModel):
         "UserPackAccess", back_populates="user",
         lazy="dynamic", cascade="all, delete-orphan",
     )
+    subscriptions = db.relationship(
+        "UserSubscription", back_populates="user",
+        lazy="dynamic", cascade="all, delete-orphan",
+    )
 
     @property
     def is_subscribed(self) -> bool:
@@ -39,4 +47,6 @@ class User(BaseModel):
         self.password_hash = generate_password_hash(password)
 
     def check_password(self, password: str) -> bool:
+        if not self.password_hash:
+            return False
         return check_password_hash(self.password_hash, password)

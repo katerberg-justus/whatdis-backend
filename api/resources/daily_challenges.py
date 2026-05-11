@@ -5,6 +5,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity, verify_jwt_in_req
 from api import db, limiter
 from api.models.daily_challenge import DailyChallenge
 from api.models.challenge import Challenge
+from api.models.game import Game
 from api.models.user import User
 from api.common.challenge_enums import (
     VALID_CHALLENGE_TYPES, VALID_DIFFICULTIES,
@@ -24,6 +25,15 @@ def _current_user_optional() -> User | None:
     return None
 
 
+def _completed_challenge_ids(user: User) -> set:
+    """Return the set of challenge_ids the user has won."""
+    rows = db.session.execute(
+        db.select(Game.challenge_id)
+        .where(Game.user_id == user.id, Game.completed_at.is_not(None))
+    ).scalars().all()
+    return set(rows)
+
+
 def _todays_games_count(user: User) -> int:
     """Count distinct daily challenge games this user started today."""
     from api.models.game import Game
@@ -38,7 +48,7 @@ def _todays_games_count(user: User) -> int:
     ).scalar_one()
 
 
-def _serialize(dc: DailyChallenge, guess_limit: int) -> dict:
+def _serialize(dc: DailyChallenge, guess_limit: int, completed: bool = False) -> dict:
     return {
         "id": dc.id,
         "challenge_id": dc.challenge_id,
@@ -46,7 +56,8 @@ def _serialize(dc: DailyChallenge, guess_limit: int) -> dict:
         "challenge_type": CHALLENGE_TYPE_LABEL.get(dc.challenge_type, dc.challenge_type),
         "difficulty": DIFFICULTY_LABEL.get(dc.difficulty, dc.difficulty),
         "guess_limit": guess_limit,
-        "subject": dc.challenge.subject if dc.challenge else None,
+        "completed": completed,
+        "subject": dc.challenge.subject if (completed and dc.challenge) else None,
     }
 
 
@@ -64,14 +75,20 @@ class DailyChallengeListResource(Resource):
             .order_by(DailyChallenge.challenge_type, DailyChallenge.difficulty)
         ).scalars().all()
 
-        if user and user.is_subscribed:
-            # subscribers see all slots
-            return [_serialize(dc, guess_limit) for dc in today_slots], 200
+        completed_ids = _completed_challenge_ids(user) if user else set()
 
-        # non-subscribers see all slots but know they can only play `limit` of them
+        if user and user.is_subscribed:
+            return [
+                _serialize(dc, guess_limit, dc.challenge_id in completed_ids)
+                for dc in today_slots
+            ], 200
+
         return {
             "daily_limit": limit,
-            "challenges": [_serialize(dc, guess_limit) for dc in today_slots],
+            "challenges": [
+                _serialize(dc, guess_limit, dc.challenge_id in completed_ids)
+                for dc in today_slots
+            ],
         }, 200
 
     @jwt_required()
@@ -113,7 +130,8 @@ class DailyChallengeResource(Resource):
     def get(self, daily_id):
         dc = db.get_or_404(DailyChallenge, daily_id)
         user = db.session.get(User, get_jwt_identity())
-        return _serialize(dc, guess_limit_for(user)), 200
+        completed = dc.challenge_id in _completed_challenge_ids(user)
+        return _serialize(dc, guess_limit_for(user), completed), 200
 
     def delete(self, daily_id):
         dc = db.get_or_404(DailyChallenge, daily_id)
@@ -140,4 +158,5 @@ class DailyChallengeByDateResource(Resource):
             .where(DailyChallenge.available_on == target)
             .order_by(DailyChallenge.challenge_type, DailyChallenge.difficulty)
         ).scalars().all()
-        return [_serialize(dc, guess_limit_for(user)) for dc in slots], 200
+        completed_ids = _completed_challenge_ids(user)
+        return [_serialize(dc, guess_limit_for(user), dc.challenge_id in completed_ids) for dc in slots], 200

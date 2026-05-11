@@ -1,8 +1,9 @@
 def register_resources(rest_api):
-    from api.resources.auth import LoginResource, RefreshResource, LogoutResource
+    from api.resources.auth import LoginResource, RefreshResource, LogoutResource, GuestLoginResource
     from api.resources.users import UserListResource, UserResource
     from api.resources.me import (
         MeResource,
+        ClaimResource,
         FriendListResource,
         FriendRequestListResource,
         FriendResource,
@@ -27,14 +28,22 @@ def register_resources(rest_api):
         DailyChallengeResource,
         DailyChallengeByDateResource,
     )
+    from api.resources.subscriptions import (
+        SubscriptionPlanListResource,
+        CheckoutSessionResource,
+        MeSubscriptionResource,
+        StripeWebhookResource,
+    )
 
     # Auth
-    rest_api.add_resource(LoginResource,   "/auth/login")
-    rest_api.add_resource(RefreshResource, "/auth/refresh")
-    rest_api.add_resource(LogoutResource,  "/auth/logout")
+    rest_api.add_resource(LoginResource,      "/auth/login")
+    rest_api.add_resource(GuestLoginResource, "/auth/guest")
+    rest_api.add_resource(RefreshResource,    "/auth/refresh")
+    rest_api.add_resource(LogoutResource,     "/auth/logout")
 
     # Self
     rest_api.add_resource(MeResource,                "/me")
+    rest_api.add_resource(ClaimResource,             "/me/claim")
     rest_api.add_resource(FriendListResource,        "/me/friends")
     rest_api.add_resource(FriendRequestListResource, "/me/friends/requests")
     rest_api.add_resource(FriendResource,            "/me/friends/<string:friendship_id>")
@@ -68,3 +77,9 @@ def register_resources(rest_api):
     rest_api.add_resource(DailyChallengeListResource,   "/daily")
     rest_api.add_resource(DailyChallengeByDateResource, "/daily/<string:date_str>")
     rest_api.add_resource(DailyChallengeResource,       "/daily/id/<string:daily_id>")
+
+    # Subscriptions
+    rest_api.add_resource(SubscriptionPlanListResource, "/subscriptions")
+    rest_api.add_resource(CheckoutSessionResource,      "/subscriptions/checkout")
+    rest_api.add_resource(MeSubscriptionResource,       "/me/subscription")
+    rest_api.add_resource(StripeWebhookResource,        "/webhooks/stripe")

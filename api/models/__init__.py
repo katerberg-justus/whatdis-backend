@@ -8,10 +8,12 @@ from api.models.game import Game
 from api.models.guess import Guess
 from api.models.battle import Battle
 from api.models.battle_guess import BattleGuess
+from api.models.user_subscription import UserSubscription
 
 __all__ = [
     "User", "Friendship",
     "ChallengePack", "Challenge", "DailyChallenge", "UserPackAccess",
     "Game", "Guess",
     "Battle", "BattleGuess",
+    "UserSubscription",
 ]

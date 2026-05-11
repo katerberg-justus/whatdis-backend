@@ -7,6 +7,7 @@ from flask_caching import Cache
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_cors import CORS
+from datetime import datetime, timezone
 from dotenv import load_dotenv
 import os
 
@@ -88,5 +89,18 @@ def create_app(config=None):
 
     from api.common.errors import register_error_handlers
     register_error_handlers(app)
+
+    @app.cli.command("purge-guests")
+    def purge_guests():
+        """Delete guest accounts older than 30 days that were never claimed."""
+        import click
+        from datetime import timedelta
+        from api.models.user import User
+        cutoff = datetime.now(timezone.utc) - timedelta(days=30)
+        result = db.session.execute(
+            db.delete(User).where(User.is_guest == True, User.created_at < cutoff)
+        )
+        db.session.commit()
+        click.echo(f"Purged {result.rowcount} guest account(s).")
 
     return app

@@ -1,4 +1,4 @@
-from sqlalchemy import String, ForeignKey
+from sqlalchemy import String, ForeignKey, DateTime
 from sqlalchemy.dialects.mysql import CHAR
 from api import db
 from api.common.base_model import BaseModel
@@ -14,6 +14,7 @@ class Game(BaseModel):
         nullable=False,
         index=True,
     )
+    completed_at = db.Column(DateTime, nullable=True)
 
     user = db.relationship("User", back_populates="games")
     guesses = db.relationship(

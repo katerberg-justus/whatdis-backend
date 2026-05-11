@@ -1,3 +1,4 @@
+import secrets
 from flask import request, make_response
 from flask_restful import Resource
 from flask_jwt_extended import (
@@ -18,7 +19,7 @@ class LoginResource(Resource):
 
     def post(self):
         data = request.get_json(silent=True) or {}
-        email = data.get("email")
+        email = data.get("email") or data.get("username")
         password = data.get("password")
 
         if not email or not password:
@@ -47,6 +48,25 @@ class RefreshResource(Resource):
         access_token = create_access_token(identity=get_jwt_identity())
         resp = make_response({"message": "Token refreshed"}, 200)
         set_access_cookies(resp, access_token)
+        return resp
+
+
+class GuestLoginResource(Resource):
+    decorators = [limiter.limit("20 per minute")]
+
+    def post(self):
+        guest = User(
+            name=f"guest_{secrets.token_hex(8)}",
+            is_guest=True,
+        )
+        db.session.add(guest)
+        db.session.commit()
+
+        access_token = create_access_token(identity=guest.id)
+        refresh_token = create_refresh_token(identity=guest.id)
+        resp = make_response({"message": "Guest session created"}, 201)
+        set_access_cookies(resp, access_token)
+        set_refresh_cookies(resp, refresh_token)
         return resp
 
 

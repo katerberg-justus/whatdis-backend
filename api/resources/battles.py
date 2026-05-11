@@ -7,6 +7,7 @@ from api.models.battle import Battle, PENDING, ACTIVE, FINISHED
 from api.models.battle_guess import BattleGuess
 from api.models.user import User
 from api.common.response_codes import VALID_CODES, WIN
+from api.common.energy import consume_energy
 
 
 def _get_battle_or_404(battle_id: str) -> Battle:
@@ -132,6 +133,11 @@ class BattleGuessListResource(Resource):
         if not isinstance(rc, int) or rc not in VALID_CODES:
             return {"error": f"response_code must be one of {sorted(VALID_CODES)}"}, 400
 
+        user = db.session.get(User, uid)
+        allowed, energy_remaining = consume_energy(user, request.remote_addr)
+        if not allowed:
+            return {"error": "No energy remaining. Come back tomorrow."}, 429
+
         next_turn = db.session.execute(
             db.select(func.count()).select_from(BattleGuess).where(BattleGuess.battle_id == battle_id)
         ).scalar_one()
@@ -153,7 +159,7 @@ class BattleGuessListResource(Resource):
             battle.current_turn_id = _other_player(battle, uid)
 
         db.session.commit()
-        return _serialize_guess(guess), 201
+        return {**_serialize_guess(guess), "energy_remaining": energy_remaining}, 201
 
 
 def _serialize(battle: Battle, viewer_id: str, include_guesses: bool = False) -> dict:
@@ -175,7 +181,7 @@ def _serialize(battle: Battle, viewer_id: str, include_guesses: bool = False) ->
 
 
 def _serialize_guess(g: BattleGuess) -> dict:
-    rc_labels = {0: "no", 1: "yes", 2: "indecisive", 3: "refusal", 4: "win"}
+    rc_labels = {0: "no", 1: "yes", 2: "indecisive", 3: "refusal", 4: "win", 5: "possible"}
     return {
         "id": g.id,
         "battle_id": g.battle_id,

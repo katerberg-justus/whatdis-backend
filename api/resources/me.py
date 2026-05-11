@@ -6,6 +6,9 @@ from sqlalchemy.exc import IntegrityError
 from api import db, limiter
 from api.models.user import User
 from api.models.friendship import Friendship, PENDING, ACCEPTED
+from api.common.energy import get_energy
+from api.resources.subscriptions import _active_subscription, _serialize as _serialize_sub
+from api.common.subscription_plans import STATUS_ACTIVE, STATUS_CANCELLED
 
 
 def _current_user() -> User:
@@ -43,6 +46,34 @@ class MeResource(Resource):
         db.session.delete(user)
         db.session.commit()
         return {}, 204
+
+
+class ClaimResource(Resource):
+    """Convert a guest account into a full account in-place."""
+    decorators = [jwt_required(), limiter.limit("5 per minute")]
+
+    def post(self):
+        user = _current_user()
+        if not user.is_guest:
+            return {"error": "Account already claimed"}, 409
+
+        data = request.get_json(silent=True) or {}
+        missing = [f for f in ("email", "password") if not data.get(f)]
+        if missing:
+            return {"error": f"Missing fields: {', '.join(missing)}"}, 400
+
+        user.email = data["email"]
+        user.set_password(data["password"])
+        if data.get("name"):
+            user.name = data["name"]
+        user.is_guest = False
+        try:
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
+            return {"error": "Email or username already taken"}, 409
+
+        return _serialize_user(user), 200
 
 
 class FriendListResource(Resource):
@@ -136,10 +167,16 @@ class FriendResource(Resource):
 
 
 def _serialize_user(u: User) -> dict:
+    sub = _active_subscription(u.id)
+    is_subscribed = sub is not None and sub.status in (STATUS_ACTIVE, STATUS_CANCELLED)
     return {
         "id": u.id,
         "name": u.name,
         "email": u.email,
+        "is_guest": u.is_guest,
+        "is_subscribed": is_subscribed,
+        "subscription": _serialize_sub(sub) if sub else None,
+        "energy": get_energy(u, is_subscribed=is_subscribed),
         "created_at": u.created_at.isoformat() if u.created_at else None,
         "updated_at": u.updated_at.isoformat() if u.updated_at else None,
     }
