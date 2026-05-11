@@ -16,6 +16,9 @@ class User(BaseModel):
     # Subscriber carry-over energy — null for non-subscribers
     energy_balance           = db.Column(Integer, nullable=True)
     energy_replenished_date  = db.Column(Date, nullable=True)
+    # Consecutive-day streak tracking
+    current_streak           = db.Column(Integer, nullable=False, default=0, server_default="0")
+    streak_updated_date      = db.Column(Date, nullable=True)
 
     games = db.relationship("Game", back_populates="user", lazy="dynamic")
     guesses = db.relationship("Guess", back_populates="user", lazy="dynamic")
@@ -33,6 +36,10 @@ class User(BaseModel):
     )
     subscriptions = db.relationship(
         "UserSubscription", back_populates="user",
+        lazy="dynamic", cascade="all, delete-orphan",
+    )
+    achievements = db.relationship(
+        "UserAchievement", back_populates="user",
         lazy="dynamic", cascade="all, delete-orphan",
     )
 

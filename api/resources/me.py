@@ -7,6 +7,8 @@ from api import db, limiter
 from api.models.user import User
 from api.models.friendship import Friendship, PENDING, ACCEPTED
 from api.common.energy import get_energy
+from api.common.base_model import utc_isoformat
+from api.common.limits import ENERGY_DAILY_GUEST, ENERGY_DAILY_USER, ENERGY_MAX_SUBSCRIBER
 from api.resources.subscriptions import _active_subscription, _serialize as _serialize_sub
 from api.common.subscription_plans import STATUS_ACTIVE, STATUS_CANCELLED
 
@@ -177,8 +179,9 @@ def _serialize_user(u: User) -> dict:
         "is_subscribed": is_subscribed,
         "subscription": _serialize_sub(sub) if sub else None,
         "energy": get_energy(u, is_subscribed=is_subscribed),
-        "created_at": u.created_at.isoformat() if u.created_at else None,
-        "updated_at": u.updated_at.isoformat() if u.updated_at else None,
+        "max_energy": ENERGY_MAX_SUBSCRIBER if is_subscribed else (ENERGY_DAILY_GUEST if u.is_guest else ENERGY_DAILY_USER),
+        "created_at": utc_isoformat(u.created_at),
+        "updated_at": utc_isoformat(u.updated_at),
     }
 
 
@@ -189,5 +192,5 @@ def _serialize_friendship(f: Friendship, viewer_id: str) -> dict:
         "friend": {"id": friend.id, "name": friend.name, "email": friend.email},
         "status": "pending" if f.status == PENDING else "accepted",
         "direction": "sent" if f.requester_id == viewer_id else "received",
-        "created_at": f.created_at.isoformat() if f.created_at else None,
+        "created_at": utc_isoformat(f.created_at),
     }

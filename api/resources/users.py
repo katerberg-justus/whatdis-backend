@@ -4,6 +4,7 @@ from flask_jwt_extended import jwt_required
 from sqlalchemy.exc import IntegrityError
 from api import db, limiter
 from api.models.user import User
+from api.common.base_model import utc_isoformat
 
 
 class UserListResource(Resource):
@@ -41,6 +42,6 @@ def _serialize(u: User) -> dict:
         "id": u.id,
         "name": u.name,
         "email": u.email,
-        "created_at": u.created_at.isoformat() if u.created_at else None,
-        "updated_at": u.updated_at.isoformat() if u.updated_at else None,
+        "created_at": utc_isoformat(u.created_at),
+        "updated_at": utc_isoformat(u.updated_at),
     }

@@ -3,6 +3,7 @@ from sqlalchemy import func, cast, Date as SADate
 from api import db, cache
 from api.common.limits import (
     ENERGY_DAILY_ANONYMOUS,
+    ENERGY_DAILY_GUEST,
     ENERGY_DAILY_USER,
     ENERGY_DAILY_SUBSCRIBER,
     ENERGY_MAX_SUBSCRIBER,
@@ -60,17 +61,21 @@ def get_energy(user, ip: str | None = None, is_subscribed: bool | None = None) -
         return ENERGY_DAILY_ANONYMOUS if remaining is None else remaining
     subscribed = is_subscribed if is_subscribed is not None else user.is_subscribed
     if subscribed:
-        _maybe_replenish(user)
+        today = date.today()
+        if user.energy_replenished_date != today:
+            current = user.energy_balance or 0
+            return min(current + ENERGY_DAILY_SUBSCRIBER, ENERGY_MAX_SUBSCRIBER)
         return user.energy_balance or 0
     cached = _cached_user_energy(user.id)
     if cached is not None:
         return cached
-    remaining = max(0, ENERGY_DAILY_USER - _count_todays_guesses(user.id))
+    daily = ENERGY_DAILY_GUEST if user.is_guest else ENERGY_DAILY_USER
+    remaining = max(0, daily - _count_todays_guesses(user.id))
     _set_user_energy_cache(user.id, remaining)
     return remaining
 
 
-def consume_energy(user, ip: str | None = None) -> tuple[bool, int]:
+def consume_energy(user, ip: str | None = None, is_subscribed: bool | None = None) -> tuple[bool, int]:
     """
     Attempt to consume 1 energy.
     Returns (allowed, energy_remaining_after_consumption).
@@ -78,7 +83,8 @@ def consume_energy(user, ip: str | None = None) -> tuple[bool, int]:
     """
     if user is None:
         return _consume_anon(ip)
-    if user.is_subscribed:
+    subscribed = is_subscribed if is_subscribed is not None else user.is_subscribed
+    if subscribed:
         return _consume_subscriber(user)
     return _consume_user(user)
 
@@ -102,7 +108,8 @@ def _consume_user(user) -> tuple[bool, int]:
     if cached is not None:
         remaining = cached
     else:
-        remaining = max(0, ENERGY_DAILY_USER - _count_todays_guesses(user.id))
+        daily = ENERGY_DAILY_GUEST if user.is_guest else ENERGY_DAILY_USER
+        remaining = max(0, daily - _count_todays_guesses(user.id))
     if remaining <= 0:
         return False, 0
     # Write the post-consumption value — guess is committed by the caller
@@ -120,10 +127,11 @@ def _consume_subscriber(user) -> tuple[bool, int]:
     return True, user.energy_balance
 
 
-def _maybe_replenish(user) -> None:
+def _maybe_replenish(user) -> bool:
     today = date.today()
     if user.energy_replenished_date == today:
-        return
+        return False
     current = user.energy_balance or 0
     user.energy_balance = min(current + ENERGY_DAILY_SUBSCRIBER, ENERGY_MAX_SUBSCRIBER)
     user.energy_replenished_date = today
+    return True

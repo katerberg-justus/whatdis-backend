@@ -34,6 +34,7 @@ def register_resources(rest_api):
         MeSubscriptionResource,
         StripeWebhookResource,
     )
+    from api.resources.achievements import AchievementListResource, MeAchievementListResource
 
     # Auth
     rest_api.add_resource(LoginResource,      "/auth/login")
@@ -83,3 +84,7 @@ def register_resources(rest_api):
     rest_api.add_resource(CheckoutSessionResource,      "/subscriptions/checkout")
     rest_api.add_resource(MeSubscriptionResource,       "/me/subscription")
     rest_api.add_resource(StripeWebhookResource,        "/webhooks/stripe")
+
+    # Achievements
+    rest_api.add_resource(AchievementListResource,   "/achievements")
+    rest_api.add_resource(MeAchievementListResource, "/me/achievements")

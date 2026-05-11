@@ -3,6 +3,7 @@ from flask_restful import Resource, abort
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from sqlalchemy import or_, func
 from api import db, limiter
+from api.common.base_model import utc_isoformat
 from api.models.battle import Battle, PENDING, ACTIVE, FINISHED
 from api.models.battle_guess import BattleGuess
 from api.models.user import User
@@ -172,8 +173,8 @@ def _serialize(battle: Battle, viewer_id: str, include_guesses: bool = False) ->
         "status": status_label[battle.status],
         "current_turn_id": battle.current_turn_id,
         "winner_id": battle.winner_id,
-        "created_at": battle.created_at.isoformat() if battle.created_at else None,
-        "updated_at": battle.updated_at.isoformat() if battle.updated_at else None,
+        "created_at": utc_isoformat(battle.created_at),
+        "updated_at": utc_isoformat(battle.updated_at),
     }
     if include_guesses:
         data["guesses"] = [_serialize_guess(g) for g in battle.guesses.all()]
@@ -181,14 +182,14 @@ def _serialize(battle: Battle, viewer_id: str, include_guesses: bool = False) ->
 
 
 def _serialize_guess(g: BattleGuess) -> dict:
-    rc_labels = {0: "no", 1: "yes", 2: "indecisive", 3: "refusal", 4: "win", 5: "possible"}
+    rc_labels = {0: "no", 1: "yes", 2: "indecisive", 3: "refusal", 4: "win", 5: "possible", 6: "possibly_not"}
     return {
         "id": g.id,
         "battle_id": g.battle_id,
         "user_id": g.user_id,
         "content": g.content,
         "response_code": g.response_code,
-        "response": rc_labels[g.response_code],
+        "response": rc_labels.get(g.response_code, str(g.response_code)),
         "turn_number": g.turn_number,
-        "created_at": g.created_at.isoformat() if g.created_at else None,
+        "created_at": utc_isoformat(g.created_at),
     }

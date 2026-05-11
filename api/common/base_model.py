@@ -1,6 +1,16 @@
+from datetime import datetime, timezone
 from sqlalchemy import text, DateTime, func
 from sqlalchemy.dialects.mysql import CHAR
 from api import db
+
+
+def utc_isoformat(dt: datetime | None) -> str | None:
+    """Return an ISO-8601 Zulu string for any datetime, naive or aware."""
+    if dt is None:
+        return None
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 class BaseModel(db.Model):

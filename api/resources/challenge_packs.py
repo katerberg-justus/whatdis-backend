@@ -1,9 +1,10 @@
 from flask import request
 from flask_restful import Resource, abort
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from sqlalchemy import func
+from sqlalchemy import func, asc
 from sqlalchemy.exc import IntegrityError
-from api import db, limiter
+from api import db, limiter, cache
+from api.common.base_model import utc_isoformat
 from api.models.challenge_pack import ChallengePack
 from api.models.challenge import Challenge
 from api.models.game import Game
@@ -13,6 +14,19 @@ from api.common.challenge_enums import (
     VALID_CHALLENGE_TYPES, VALID_DIFFICULTIES,
     CHALLENGE_TYPE_LABEL, DIFFICULTY_LABEL,
 )
+
+_CACHE_TTL = 3600  # 1 hour
+_PACKS_CACHE_KEY = "challenge_packs:list"
+
+
+def _pack_challenges_key(pack_id: str) -> str:
+    return f"challenge_packs:challenges:{pack_id}"
+
+
+def _bust_pack_cache(pack_id: str | None = None) -> None:
+    cache.delete(_PACKS_CACHE_KEY)
+    if pack_id:
+        cache.delete(_pack_challenges_key(pack_id))
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -38,6 +52,40 @@ def _require_access(pack: ChallengePack, user_id: str):
         abort(403)
 
 
+def _cached_packs() -> tuple[list, dict]:
+    """Return (packs, total_counts) from cache or DB."""
+    hit = cache.get(_PACKS_CACHE_KEY)
+    if hit is not None:
+        return hit
+    packs = db.session.execute(
+        db.select(ChallengePack).where(ChallengePack.is_active == True)
+    ).scalars().all()
+    pack_ids = [p.id for p in packs]
+    total_counts = dict(db.session.execute(
+        db.select(Challenge.pack_id, func.count())
+        .where(Challenge.pack_id.in_(pack_ids), Challenge.is_active == True)
+        .group_by(Challenge.pack_id)
+    ).all()) if pack_ids else {}
+    result = (packs, total_counts)
+    cache.set(_PACKS_CACHE_KEY, result, timeout=_CACHE_TTL)
+    return result
+
+
+def _cached_challenges(pack_id: str) -> list:
+    """Return ordered active challenges for a pack from cache or DB."""
+    key = _pack_challenges_key(pack_id)
+    hit = cache.get(key)
+    if hit is not None:
+        return hit
+    challenges = db.session.execute(
+        db.select(Challenge)
+        .where(Challenge.pack_id == pack_id, Challenge.is_active == True)
+        .order_by(asc(Challenge.position))
+    ).scalars().all()
+    cache.set(key, challenges, timeout=_CACHE_TTL)
+    return challenges
+
+
 def _completed_ids_for_pack(pack_id: str, user_id: str) -> set:
     rows = db.session.execute(
         db.select(Game.challenge_id)
@@ -51,19 +99,14 @@ def _completed_ids_for_pack(pack_id: str, user_id: str) -> set:
     return set(rows)
 
 
-def _completed_count(pack_id: str, user_id: str) -> int:
-    return db.session.execute(
-        db.select(func.count(func.distinct(Game.challenge_id)))
-        .join(Challenge, Challenge.id == Game.challenge_id)
-        .where(
-            Challenge.pack_id == pack_id,
-            Game.user_id == user_id,
-            Game.completed_at.is_not(None),
-        )
-    ).scalar_one()
 
-
-def _serialize_pack(p: ChallengePack, include_challenges: bool = False, user_id: str | None = None) -> dict:
+def _serialize_pack(
+    p: ChallengePack,
+    total_count: int | None = None,
+    completed_count: int | None = None,
+    challenges: list | None = None,
+    completed_ids: set | None = None,
+) -> dict:
     data = {
         "id": p.id,
         "name": p.name,
@@ -72,18 +115,16 @@ def _serialize_pack(p: ChallengePack, include_challenges: bool = False, user_id:
         "difficulty": DIFFICULTY_LABEL.get(p.difficulty, p.difficulty),
         "is_active": p.is_active,
         "subscription_access": p.subscription_access,
-        "total_count": p.challenges.filter_by(is_active=True).count(),
-        "completed_count": _completed_count(p.id, user_id) if user_id else 0,
-        "created_at": p.created_at.isoformat() if p.created_at else None,
-        "updated_at": p.updated_at.isoformat() if p.updated_at else None,
+        "total_count": total_count if total_count is not None else 0,
+        "completed_count": completed_count if completed_count is not None else 0,
+        "created_at": utc_isoformat(p.created_at),
+        "updated_at": utc_isoformat(p.updated_at),
     }
-    if include_challenges:
-        from sqlalchemy import asc
-        challenges = p.challenges.filter_by(is_active=True).order_by(asc(Challenge.position)).all()
-        completed_ids = _completed_ids_for_pack(p.id, user_id) if user_id else set()
-        lock_flags = _lock_flags(challenges, completed_ids)
+    if challenges is not None:
+        ids = completed_ids or set()
+        lock_flags = _lock_flags(challenges, ids)
         data["challenges"] = [
-            _serialize_challenge(c, completed=c.id in completed_ids, is_locked=locked)
+            _serialize_challenge(c, completed=c.id in ids, is_locked=locked)
             for c, locked in zip(challenges, lock_flags)
         ]
     return data
@@ -100,8 +141,8 @@ def _serialize_challenge(c: Challenge, completed: bool = False, is_locked: bool 
         "completed": completed,
         "is_locked": is_locked,
         "icon": c.icon if completed else None,
-        "created_at": c.created_at.isoformat() if c.created_at else None,
-        "updated_at": c.updated_at.isoformat() if c.updated_at else None,
+        "created_at": utc_isoformat(c.created_at),
+        "updated_at": utc_isoformat(c.updated_at),
     }
 
 
@@ -122,13 +163,50 @@ class ChallengePackListResource(Resource):
 
     def get(self):
         uid = get_jwt_identity()
-        packs = db.session.execute(
-            db.select(ChallengePack).where(ChallengePack.is_active == True)
-        ).scalars().all()
-        return [
-            {**_serialize_pack(p, user_id=uid), "is_locked": not _has_access(p, uid)}
-            for p in packs
-        ], 200
+        packs, total_counts = _cached_packs()
+        if not packs:
+            return [], 200
+
+        pack_ids = [p.id for p in packs]
+
+        # Completed challenges per pack for this user — 1 query
+        completed_counts = dict(db.session.execute(
+            db.select(Challenge.pack_id, func.count(func.distinct(Game.challenge_id)))
+            .join(Game, Game.challenge_id == Challenge.id)
+            .where(
+                Challenge.pack_id.in_(pack_ids),
+                Game.user_id == uid,
+                Game.completed_at.isnot(None),
+            )
+            .group_by(Challenge.pack_id)
+        ).all())
+
+        # Packs the user has explicit access to — 1 query
+        granted_pack_ids = {
+            row[0] for row in db.session.execute(
+                db.select(UserPackAccess.pack_id)
+                .where(UserPackAccess.user_id == uid, UserPackAccess.pack_id.in_(pack_ids))
+            ).all()
+        }
+
+        # Subscription check — 1 query
+        from api.resources.subscriptions import _active_subscription
+        from api.common.subscription_plans import STATUS_ACTIVE, STATUS_CANCELLED
+        sub = _active_subscription(uid)
+        is_subscribed = sub is not None and sub.status in (STATUS_ACTIVE, STATUS_CANCELLED)
+
+        result = []
+        for p in packs:
+            has_access = p.id in granted_pack_ids or (is_subscribed and p.subscription_access is not False)
+            result.append({
+                **_serialize_pack(
+                    p,
+                    total_count=total_counts.get(p.id, 0),
+                    completed_count=completed_counts.get(p.id, 0),
+                ),
+                "is_locked": not has_access,
+            })
+        return result, 200
 
     def post(self):
         data = request.get_json(silent=True) or {}
@@ -149,6 +227,7 @@ class ChallengePackListResource(Resource):
         )
         db.session.add(pack)
         db.session.commit()
+        _bust_pack_cache()
         return _serialize_pack(pack), 201
 
 
@@ -161,7 +240,15 @@ class ChallengePackResource(Resource):
         uid = get_jwt_identity()
         pack = db.get_or_404(ChallengePack, pack_id)
         _require_access(pack, uid)
-        return _serialize_pack(pack, include_challenges=True, user_id=uid), 200
+        challenges = _cached_challenges(pack_id)
+        completed_ids = _completed_ids_for_pack(pack_id, uid)
+        return _serialize_pack(
+            pack,
+            total_count=len(challenges),
+            completed_count=len(completed_ids),
+            challenges=challenges,
+            completed_ids=completed_ids,
+        ), 200
 
     def put(self, pack_id):
         pack = db.get_or_404(ChallengePack, pack_id)
@@ -181,12 +268,14 @@ class ChallengePackResource(Resource):
         if "is_active" in data:
             pack.is_active = bool(data["is_active"])
         db.session.commit()
+        _bust_pack_cache(pack_id)
         return _serialize_pack(pack), 200
 
     def delete(self, pack_id):
         pack = db.get_or_404(ChallengePack, pack_id)
         db.session.delete(pack)
         db.session.commit()
+        _bust_pack_cache(pack_id)
         return {}, 204
 
 
@@ -196,11 +285,10 @@ class ChallengeListResource(Resource):
     decorators = [jwt_required(), limiter.limit("30 per minute")]
 
     def get(self, pack_id):
-        from sqlalchemy import asc
         uid = get_jwt_identity()
         pack = db.get_or_404(ChallengePack, pack_id)
         _require_access(pack, uid)
-        challenges = pack.challenges.filter_by(is_active=True).order_by(asc(Challenge.position)).all()
+        challenges = _cached_challenges(pack_id)
         completed_ids = _completed_ids_for_pack(pack_id, uid)
         lock_flags = _lock_flags(challenges, completed_ids)
         return [
@@ -233,6 +321,7 @@ class ChallengeListResource(Resource):
         )
         db.session.add(challenge)
         db.session.commit()
+        _bust_pack_cache(pack_id)
         return _serialize_challenge(challenge), 201
 
 
@@ -286,12 +375,14 @@ class ChallengeResource(Resource):
         if "is_active" in data:
             challenge.is_active = bool(data["is_active"])
         db.session.commit()
+        _bust_pack_cache(pack_id)
         return _serialize_challenge(challenge), 200
 
     def delete(self, pack_id, challenge_id):
         challenge = _get_challenge(pack_id, challenge_id)
         db.session.delete(challenge)
         db.session.commit()
+        _bust_pack_cache(pack_id)
         return {}, 204
 
 

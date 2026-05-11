@@ -6,6 +6,7 @@ from flask_restful import Resource, abort
 from flask_jwt_extended import jwt_required, get_jwt_identity
 import stripe
 from api import db, limiter
+from api.common.base_model import utc_isoformat
 from api.models.user import User
 from api.models.user_subscription import UserSubscription
 from api.common.subscription_plans import (
@@ -31,10 +32,10 @@ def _serialize(sub: UserSubscription) -> dict:
         "tier": info.get("tier"),
         "period": info.get("period"),
         "status": sub.status,
-        "current_period_start": sub.current_period_start.isoformat() if sub.current_period_start else None,
-        "current_period_end": sub.current_period_end.isoformat() if sub.current_period_end else None,
-        "cancelled_at": sub.cancelled_at.isoformat() if sub.cancelled_at else None,
-        "created_at": sub.created_at.isoformat() if sub.created_at else None,
+        "current_period_start": utc_isoformat(sub.current_period_start),
+        "current_period_end": utc_isoformat(sub.current_period_end),
+        "cancelled_at": utc_isoformat(sub.cancelled_at),
+        "created_at": utc_isoformat(sub.created_at),
     }
 
 

@@ -2,8 +2,11 @@ from datetime import date
 from flask import request
 from flask_restful import Resource
 from flask_jwt_extended import jwt_required, get_jwt_identity
+from sqlalchemy import func
 from api import db, limiter
+from api.common.base_model import utc_isoformat
 from api.models.game import Game
+from api.models.guess import Guess
 from api.models.challenge import Challenge
 from api.models.challenge_pack import ChallengePack
 from api.models.daily_challenge import DailyChallenge
@@ -82,10 +85,20 @@ def _require_owner(game: Game):
 
 
 def _serialize(g: Game) -> dict:
+    duration_seconds = None
+    if g.completed_at is not None:
+        first_guess_at = db.session.execute(
+            db.select(func.min(Guess.created_at)).where(Guess.game_id == g.id)
+        ).scalar_one()
+        if first_guess_at is not None:
+            duration_seconds = int((g.completed_at - first_guess_at).total_seconds())
+
     return {
         "id": g.id,
         "challenge_id": g.challenge_id,
         "user_id": g.user_id,
-        "created_at": g.created_at.isoformat() if g.created_at else None,
-        "updated_at": g.updated_at.isoformat() if g.updated_at else None,
+        "completed_at": utc_isoformat(g.completed_at),
+        "duration_seconds": duration_seconds,
+        "created_at": utc_isoformat(g.created_at),
+        "updated_at": utc_isoformat(g.updated_at),
     }
