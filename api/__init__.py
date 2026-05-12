@@ -49,6 +49,14 @@ def create_app(config=None):
     app.config["JWT_COOKIE_CSRF_PROTECT"] = True
     app.config["JWT_ACCESS_CSRF_HEADER_NAME"] = "X-CSRF-TOKEN"
     app.config["JWT_REFRESH_CSRF_HEADER_NAME"] = "X-CSRF-TOKEN"
+    app.config["JWT_ACCESS_COOKIE_PATH"] = "/"
+    app.config["JWT_REFRESH_COOKIE_PATH"] = "/auth/refresh"
+    app.config["JWT_ACCESS_CSRF_COOKIE_PATH"] = "/"
+    app.config["JWT_REFRESH_CSRF_COOKIE_PATH"] = "/"
+    app.config["JWT_ACCESS_CSRF_COOKIE_NAME"] = "csrf_access_token"
+    app.config["JWT_REFRESH_CSRF_COOKIE_NAME"] = "csrf_refresh_token"
+    app.config["JWT_ACCESS_TOKEN_EXPIRES"] = 3600
+    app.config["JWT_REFRESH_TOKEN_EXPIRES"] = 2592000
     app.config["CACHE_TYPE"] = "RedisCache"
     app.config["CACHE_REDIS_HOST"] = os.environ.get("REDIS_HOST", "localhost")
     app.config["CACHE_REDIS_PORT"] = int(os.environ.get("REDIS_PORT", 6379))
@@ -82,10 +90,12 @@ def create_app(config=None):
 
     migrate.init_app(app, db)
 
-    rest_api = Api(app)
+    rest_api = Api(app, prefix="/api/v1")
+    root_api = Api(app)
 
-    from api.resources import register_resources
+    from api.resources import register_resources, register_root_resources
     register_resources(rest_api)
+    register_root_resources(root_api)
 
     from api.common.errors import register_error_handlers
     register_error_handlers(app)

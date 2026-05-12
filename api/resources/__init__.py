@@ -1,5 +1,16 @@
-def register_resources(rest_api):
+def register_root_resources(api):
     from api.resources.auth import LoginResource, RefreshResource, LogoutResource, GuestLoginResource
+    from api.resources.subscriptions import StripeWebhookResource
+
+    api.add_resource(LoginResource,      "/auth/login")
+    api.add_resource(GuestLoginResource, "/auth/guest")
+    api.add_resource(RefreshResource,    "/auth/refresh")
+    api.add_resource(LogoutResource,     "/auth/logout")
+
+    api.add_resource(StripeWebhookResource, "/webhooks/stripe")
+
+
+def register_resources(api):
     from api.resources.users import UserListResource, UserResource
     from api.resources.me import (
         MeResource,
@@ -32,59 +43,51 @@ def register_resources(rest_api):
         SubscriptionPlanListResource,
         CheckoutSessionResource,
         MeSubscriptionResource,
-        StripeWebhookResource,
     )
     from api.resources.achievements import AchievementListResource, MeAchievementListResource
 
-    # Auth
-    rest_api.add_resource(LoginResource,      "/auth/login")
-    rest_api.add_resource(GuestLoginResource, "/auth/guest")
-    rest_api.add_resource(RefreshResource,    "/auth/refresh")
-    rest_api.add_resource(LogoutResource,     "/auth/logout")
-
     # Self
-    rest_api.add_resource(MeResource,                "/me")
-    rest_api.add_resource(ClaimResource,             "/me/claim")
-    rest_api.add_resource(FriendListResource,        "/me/friends")
-    rest_api.add_resource(FriendRequestListResource, "/me/friends/requests")
-    rest_api.add_resource(FriendResource,            "/me/friends/<string:friendship_id>")
+    api.add_resource(MeResource,                "/me")
+    api.add_resource(ClaimResource,             "/me/claim")
+    api.add_resource(FriendListResource,        "/me/friends")
+    api.add_resource(FriendRequestListResource, "/me/friends/requests")
+    api.add_resource(FriendResource,            "/me/friends/<string:friendship_id>")
+    api.add_resource(MeSubscriptionResource,    "/me/subscription")
+    api.add_resource(MeAchievementListResource, "/me/achievements")
 
-    # Users (lookup only — no list)
-    rest_api.add_resource(UserListResource, "/users")
-    rest_api.add_resource(UserResource,     "/users/<string:user_id>")
+    # Users
+    api.add_resource(UserListResource, "/users")
+    api.add_resource(UserResource,     "/users/<string:user_id>")
 
     # Games
-    rest_api.add_resource(GameListResource, "/games")
-    rest_api.add_resource(GameResource,     "/games/<string:game_id>")
+    api.add_resource(GameListResource, "/games")
+    api.add_resource(GameResource,     "/games/<string:game_id>")
 
     # Guesses (nested under game)
-    rest_api.add_resource(GuessListResource, "/games/<string:game_id>/guesses")
-    rest_api.add_resource(GuessResource,     "/games/<string:game_id>/guesses/<string:guess_id>")
+    api.add_resource(GuessListResource, "/games/<string:game_id>/guesses")
+    api.add_resource(GuessResource,     "/games/<string:game_id>/guesses/<string:guess_id>")
 
     # Battles
-    rest_api.add_resource(BattleListResource,      "/battles")
-    rest_api.add_resource(BattleResource,          "/battles/<string:battle_id>")
-    rest_api.add_resource(BattleAcceptResource,    "/battles/<string:battle_id>/accept")
-    rest_api.add_resource(BattleGuessListResource, "/battles/<string:battle_id>/guesses")
+    api.add_resource(BattleListResource,      "/battles")
+    api.add_resource(BattleResource,          "/battles/<string:battle_id>")
+    api.add_resource(BattleAcceptResource,    "/battles/<string:battle_id>/accept")
+    api.add_resource(BattleGuessListResource, "/battles/<string:battle_id>/guesses")
 
     # Challenge packs
-    rest_api.add_resource(ChallengePackListResource, "/challenge-packs")
-    rest_api.add_resource(ChallengePackResource,     "/challenge-packs/<string:pack_id>")
-    rest_api.add_resource(ChallengeListResource,     "/challenge-packs/<string:pack_id>/challenges")
-    rest_api.add_resource(ChallengeResource,         "/challenge-packs/<string:pack_id>/challenges/<string:challenge_id>")
-    rest_api.add_resource(PackAccessResource,        "/challenge-packs/<string:pack_id>/access")
+    api.add_resource(ChallengePackListResource, "/challenge-packs")
+    api.add_resource(ChallengePackResource,     "/challenge-packs/<string:pack_id>")
+    api.add_resource(ChallengeListResource,     "/challenge-packs/<string:pack_id>/challenges")
+    api.add_resource(ChallengeResource,         "/challenge-packs/<string:pack_id>/challenges/<string:challenge_id>")
+    api.add_resource(PackAccessResource,        "/challenge-packs/<string:pack_id>/access")
 
     # Daily challenges
-    rest_api.add_resource(DailyChallengeListResource,   "/daily")
-    rest_api.add_resource(DailyChallengeByDateResource, "/daily/<string:date_str>")
-    rest_api.add_resource(DailyChallengeResource,       "/daily/id/<string:daily_id>")
+    api.add_resource(DailyChallengeListResource,   "/daily")
+    api.add_resource(DailyChallengeByDateResource, "/daily/<string:date_str>")
+    api.add_resource(DailyChallengeResource,       "/daily/id/<string:daily_id>")
 
     # Subscriptions
-    rest_api.add_resource(SubscriptionPlanListResource, "/subscriptions")
-    rest_api.add_resource(CheckoutSessionResource,      "/subscriptions/checkout")
-    rest_api.add_resource(MeSubscriptionResource,       "/me/subscription")
-    rest_api.add_resource(StripeWebhookResource,        "/webhooks/stripe")
+    api.add_resource(SubscriptionPlanListResource, "/subscriptions")
+    api.add_resource(CheckoutSessionResource,      "/subscriptions/checkout")
 
     # Achievements
-    rest_api.add_resource(AchievementListResource,   "/achievements")
-    rest_api.add_resource(MeAchievementListResource, "/me/achievements")
+    api.add_resource(AchievementListResource, "/achievements")
