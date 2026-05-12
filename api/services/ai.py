@@ -34,9 +34,9 @@ def judge_guess(subject: str, challenge_type: int, content: str, prior_guesses: 
     from api.common.challenge_enums import CHALLENGE_TYPE_LABEL
 
     messages = [{"role": "system", "content": _SYSTEM.format(subject=subject)}]
-    # for g in prior_guesses:
-    #     messages.append({"role": "user", "content": g["content"]})
-    #     messages.append({"role": "assistant", "content": str(g["response_code"])})
+    for g in prior_guesses[-3:]:
+        messages.append({"role": "user", "content": g["content"]})
+        messages.append({"role": "assistant", "content": str(g["response_code"])})
 
     messages.append({"role": "user", "content": content})
 
