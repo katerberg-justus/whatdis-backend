@@ -50,6 +50,39 @@ class BattleListResource(Resource):
         if opponent is None:
             return {"error": "Opponent not found"}, 404
 
+        pair_filter = or_(
+            (Battle.player1_id == uid) & (Battle.player2_id == data["opponent_id"]),
+            (Battle.player1_id == data["opponent_id"]) & (Battle.player2_id == uid),
+        )
+
+        pending_exists = db.session.execute(
+            db.select(func.count()).select_from(Battle).where(
+                pair_filter,
+                Battle.status == PENDING,
+            )
+        ).scalar_one()
+        if pending_exists:
+            return {"error": "A pending battle with this opponent already exists"}, 409
+
+        active_on_challenge = db.session.execute(
+            db.select(func.count()).select_from(Battle).where(
+                pair_filter,
+                Battle.challenge_id == data["challenge_id"],
+                Battle.status == ACTIVE,
+            )
+        ).scalar_one()
+        if active_on_challenge:
+            return {"error": "An active battle on this challenge with this opponent already exists"}, 409
+
+        active_count = db.session.execute(
+            db.select(func.count()).select_from(Battle).where(
+                pair_filter,
+                Battle.status == ACTIVE,
+            )
+        ).scalar_one()
+        if active_count >= 5:
+            return {"error": "Maximum of 5 active battles between two players"}, 409
+
         battle = Battle(
             challenge_id=data["challenge_id"],
             player1_id=uid,

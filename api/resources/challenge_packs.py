@@ -122,10 +122,9 @@ def _serialize_pack(
     }
     if challenges is not None:
         ids = completed_ids or set()
-        lock_flags = _lock_flags(challenges, ids)
         data["challenges"] = [
-            _serialize_challenge(c, completed=c.id in ids, is_locked=locked)
-            for c, locked in zip(challenges, lock_flags)
+            _serialize_challenge(c, completed=c.id in ids)
+            for c in challenges
         ]
     return data
 
@@ -140,20 +139,11 @@ def _serialize_challenge(c: Challenge, completed: bool = False, is_locked: bool 
         "is_active": c.is_active,
         "completed": completed,
         "is_locked": is_locked,
+        "subject": c.subject if completed else None,
         "icon": c.icon if completed else None,
         "created_at": utc_isoformat(c.created_at),
         "updated_at": utc_isoformat(c.updated_at),
     }
-
-
-def _lock_flags(challenges: list, completed_ids: set) -> list[bool]:
-    """Return a parallel list of is_locked booleans.
-    First challenge is always unlocked; each subsequent one requires the previous to be completed.
-    """
-    flags = []
-    for i, c in enumerate(challenges):
-        flags.append(i > 0 and challenges[i - 1].id not in completed_ids)
-    return flags
 
 
 # ── Pack list / create ────────────────────────────────────────────────────────
@@ -290,10 +280,9 @@ class ChallengeListResource(Resource):
         _require_access(pack, uid)
         challenges = _cached_challenges(pack_id)
         completed_ids = _completed_ids_for_pack(pack_id, uid)
-        lock_flags = _lock_flags(challenges, completed_ids)
         return [
-            _serialize_challenge(c, completed=c.id in completed_ids, is_locked=locked)
-            for c, locked in zip(challenges, lock_flags)
+            _serialize_challenge(c, completed=c.id in completed_ids)
+            for c in challenges
         ], 200
 
     def post(self, pack_id):
@@ -340,24 +329,7 @@ class ChallengeResource(Resource):
                 Game.completed_at.is_not(None),
             )
         ).scalar_one_or_none() is not None
-        is_locked = False
-        if challenge.position > 0:
-            prev = db.session.execute(
-                db.select(Challenge).where(
-                    Challenge.pack_id == pack_id,
-                    Challenge.position == challenge.position - 1,
-                    Challenge.is_active == True,
-                )
-            ).scalar_one_or_none()
-            if prev:
-                is_locked = db.session.execute(
-                    db.select(Game).where(
-                        Game.challenge_id == prev.id,
-                        Game.user_id == uid,
-                        Game.completed_at.is_not(None),
-                    )
-                ).scalar_one_or_none() is None
-        return _serialize_challenge(challenge, completed=completed, is_locked=is_locked), 200
+        return _serialize_challenge(challenge, completed=completed), 200
 
     def put(self, pack_id, challenge_id):
         challenge = _get_challenge(pack_id, challenge_id)

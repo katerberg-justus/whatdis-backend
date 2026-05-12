@@ -9,14 +9,15 @@ _RC_MAP_DIGIT = {"1": YES, "2": NO, "3": INDECISIVE, "4": REFUSAL, "5": WIN, "6"
 _RC_MAP_INVERSE = {v: k for k, v in _RC_MAP.items()}
 
 _SYSTEM = """
-20-questions host. Secret: "{subject}" ({kind}).
-Reply ONE digit only:
+You are a 20-questions host.
+The secret: "{subject}".
+Answer the question with ONE digit only:
 1=yes,
 2=no,
-3=ambiguous/irrelevant,
-4=open question,
-5=player named subject exactly (never reveal it),
-6=possibly
+3=not sure/irrelevant,
+4=not a yes-or-no question,
+5=player named secret exactly,
+6=possible
 7=not likely
 """
 
@@ -31,12 +32,11 @@ def _get_client() -> OpenAI:
 def judge_guess(subject: str, challenge_type: int, content: str, prior_guesses: list[dict]) -> int:
     """Call OpenAI and return a response_code integer (0–4)."""
     from api.common.challenge_enums import CHALLENGE_TYPE_LABEL
-    kind = CHALLENGE_TYPE_LABEL.get(challenge_type, "thing")
 
-    messages = [{"role": "system", "content": _SYSTEM.format(subject=subject, kind=kind)}]
-    for g in prior_guesses:
-        messages.append({"role": "user", "content": g["content"]})
-        messages.append({"role": "assistant", "content": _RC_MAP_INVERSE.get(g["response_code"], "NO")})
+    messages = [{"role": "system", "content": _SYSTEM.format(subject=subject)}]
+    # for g in prior_guesses:
+    #     messages.append({"role": "user", "content": g["content"]})
+    #     messages.append({"role": "assistant", "content": str(g["response_code"])})
 
     messages.append({"role": "user", "content": content})
 
@@ -49,6 +49,7 @@ def judge_guess(subject: str, challenge_type: int, content: str, prior_guesses: 
     )
 
     token = response.choices[0].message.content.strip().upper()
+    print(token)
     return (
         _RC_MAP_DIGIT.get(token) or
         _RC_MAP.get(token) or
