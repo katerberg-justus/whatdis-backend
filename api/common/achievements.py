@@ -31,6 +31,26 @@ def _count_wins(user_id: str) -> int:
     ).scalar_one()
 
 
+def _count_battles_played(user_id: str) -> int:
+    from api.models.battle import Battle, FINISHED
+    from sqlalchemy import or_
+    return db.session.execute(
+        select(func.count()).select_from(Battle).where(
+            or_(Battle.player1_id == user_id, Battle.player2_id == user_id),
+            Battle.status == FINISHED,
+        )
+    ).scalar_one()
+
+
+def _count_battle_wins(user_id: str) -> int:
+    from api.models.battle import Battle
+    return db.session.execute(
+        select(func.count()).select_from(Battle).where(
+            Battle.winner_id == user_id,
+        )
+    ).scalar_one()
+
+
 def _count_daily_completions(user_id: str) -> int:
     from api.models.game import Game
     from api.models.daily_challenge import DailyChallenge
@@ -102,6 +122,28 @@ def check_after_guess(user, won: bool = False) -> None:
         if won:
             win_count = _count_wins(user_id)
             _award_category(user_id, "wins", win_count)
+
+        _award_category(user_id, "streak", user.current_streak or 0)
+
+        db.session.flush()
+    except Exception:
+        db.session.rollback()
+
+
+def check_after_battle_guess(user, won: bool = False) -> None:
+    """Call after a battle guess is committed."""
+    try:
+        user_id = user.id
+        _update_streak(user)
+
+        guess_count = _count_guesses(user_id)
+        _award_category(user_id, "guesses", guess_count)
+
+        if won:
+            battle_wins = _count_battle_wins(user_id)
+            _award_category(user_id, "battle_won", battle_wins)
+            battles_played = _count_battles_played(user_id)
+            _award_category(user_id, "battle_played", battles_played)
 
         _award_category(user_id, "streak", user.current_streak or 0)
 

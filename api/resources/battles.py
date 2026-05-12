@@ -9,6 +9,7 @@ from api.models.battle_guess import BattleGuess
 from api.models.user import User
 from api.common.response_codes import VALID_CODES, WIN
 from api.common.energy import consume_energy
+from api.common.achievements import check_after_battle_guess
 
 
 def _get_battle_or_404(battle_id: str) -> Battle:
@@ -97,7 +98,7 @@ class BattleAcceptResource(Resource):
             return {"error": "Battle is not pending"}, 409
 
         battle.status = ACTIVE
-        battle.current_turn_id = battle.player1_id
+        battle.current_turn_id = battle.player2_id
         db.session.commit()
         return _serialize(battle, uid), 200
 
@@ -160,6 +161,7 @@ class BattleGuessListResource(Resource):
             battle.current_turn_id = _other_player(battle, uid)
 
         db.session.commit()
+        check_after_battle_guess(user, won=(rc == WIN))
         return {**_serialize_guess(guess), "energy_remaining": energy_remaining}, 201
 
 

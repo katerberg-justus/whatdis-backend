@@ -15,7 +15,7 @@ TODAY = date.today()
 
 # (subject, expected challenge_type) — must already exist in the challenges table
 DAILY_SUBJECTS = [
-    "Michael Jackson",
+    "Donald Trump",
     "kettle",
 ]
 

@@ -47,7 +47,7 @@ class User(BaseModel):
     def is_subscribed(self) -> bool:
         return (
             self.subscription_expires_at is not None
-            and self.subscription_expires_at > datetime.now(timezone.utc)
+            and self.subscription_expires_at > datetime.utcnow()
         )
 
     def set_password(self, password: str) -> None:

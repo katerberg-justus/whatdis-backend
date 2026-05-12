@@ -11,7 +11,7 @@ class Achievement(BaseModel):
 
     name        = db.Column(String(100), nullable=False, unique=True)
     description = db.Column(Text, nullable=False)
-    # guesses | wins | daily | streak
+    # guesses | wins | daily | streak | battle_played | battle_won
     category    = db.Column(String(20), nullable=False, index=True)
     threshold   = db.Column(Integer, nullable=False)
     icon        = db.Column(Text, nullable=True)

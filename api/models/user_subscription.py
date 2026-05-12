@@ -19,8 +19,8 @@ class UserSubscription(BaseModel):
     plan_id = db.Column(String(50), nullable=False)
     # active | cancelled | past_due | archived
     status = db.Column(String(20), nullable=False, default="active")
-    current_period_start = db.Column(DateTime, nullable=True)
-    current_period_end = db.Column(DateTime, nullable=True)
+    current_period_start = db.Column(DateTime, nullable=False)
+    current_period_end = db.Column(DateTime, nullable=False)
     cancelled_at = db.Column(DateTime, nullable=True)
     archived_at = db.Column(DateTime, nullable=True)
 

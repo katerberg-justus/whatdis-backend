@@ -156,6 +156,90 @@ ACHIEVEMENTS = [
         "description": "Five thousand daily challenges. The game bends to your schedule now.",
     },
 
+    # ── Battles played ───────────────────────────────────────────────────────
+    {
+        "category": "battle_played", "threshold": 1,
+        "name": "First Duel",
+        "description": "You stepped into the arena. The crowd holds its breath.",
+    },
+    {
+        "category": "battle_played", "threshold": 5,
+        "name": "Arena Regular",
+        "description": "Five battles fought. You're no longer just a visitor.",
+    },
+    {
+        "category": "battle_played", "threshold": 20,
+        "name": "Seasoned Duelist",
+        "description": "Twenty battles. You know the smell of the arena well.",
+    },
+    {
+        "category": "battle_played", "threshold": 50,
+        "name": "Veteran of the Void",
+        "description": "Fifty battles contested. Win or lose, you always return.",
+    },
+    {
+        "category": "battle_played", "threshold": 100,
+        "name": "Centurion of Clashes",
+        "description": "A hundred battles. The arena was built for someone like you.",
+    },
+    {
+        "category": "battle_played", "threshold": 200,
+        "name": "Battle-Hardened",
+        "description": "Two hundred duels. Scars don't slow you down anymore.",
+    },
+    {
+        "category": "battle_played", "threshold": 500,
+        "name": "The Relentless",
+        "description": "Five hundred battles. Your opponents see your name and hesitate.",
+    },
+    {
+        "category": "battle_played", "threshold": 1000,
+        "name": "Legend of the Arena",
+        "description": "A thousand battles. They'll be telling stories about you long after.",
+    },
+
+    # ── Battle wins ───────────────────────────────────────────────────────────
+    {
+        "category": "battle_won", "threshold": 1,
+        "name": "First Conquest",
+        "description": "You bested another mind. The taste of victory is yours.",
+    },
+    {
+        "category": "battle_won", "threshold": 5,
+        "name": "Five-Time Victor",
+        "description": "Five opponents outwitted. You're developing a reputation.",
+    },
+    {
+        "category": "battle_won", "threshold": 20,
+        "name": "Dominant Force",
+        "description": "Twenty wins. Opponents are starting to study your patterns.",
+    },
+    {
+        "category": "battle_won", "threshold": 50,
+        "name": "Champion of Fifty",
+        "description": "Fifty battles won. The arena whispers your name.",
+    },
+    {
+        "category": "battle_won", "threshold": 100,
+        "name": "Uncrowned King",
+        "description": "A hundred victories. The crown fits whether they give it or not.",
+    },
+    {
+        "category": "battle_won", "threshold": 200,
+        "name": "The Untouchable",
+        "description": "Two hundred wins. Your opponents already know how this ends.",
+    },
+    {
+        "category": "battle_won", "threshold": 500,
+        "name": "Apex Predator",
+        "description": "Five hundred duels claimed. You hunt secrets for sport.",
+    },
+    {
+        "category": "battle_won", "threshold": 1000,
+        "name": "The Unconquerable",
+        "description": "A thousand battles won. There is no opponent left who doesn't fear you.",
+    },
+
     # ── Streaks ───────────────────────────────────────────────────────────────
     {
         "category": "streak", "threshold": 2,

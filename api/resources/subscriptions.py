@@ -20,8 +20,8 @@ def _active_subscription(user_id: str) -> UserSubscription | None:
         db.select(UserSubscription).where(
             UserSubscription.user_id == user_id,
             UserSubscription.status.in_([STATUS_ACTIVE, STATUS_CANCELLED, STATUS_PAST_DUE]),
-        )
-    ).scalar_one_or_none()
+        ).order_by(UserSubscription.created_at.desc())
+    ).scalars().first()
 
 
 def _serialize(sub: UserSubscription) -> dict:
@@ -164,9 +164,9 @@ class StripeWebhookResource(Resource):
         data = event_dict["data"]["object"]
         etype = event_dict["type"]
 
-        if etype == "customer.subscription.created":
-            _handle_subscription_upsert(data)
-        elif etype == "customer.subscription.updated":
+        if etype == "checkout.session.completed":
+            _handle_checkout_completed(data)
+        elif etype in ("customer.subscription.created", "customer.subscription.updated"):
             _handle_subscription_upsert(data)
         elif etype == "customer.subscription.deleted":
             _handle_subscription_deleted(data)
@@ -178,17 +178,44 @@ class StripeWebhookResource(Resource):
 
 # ── Webhook handlers ──────────────────────────────────────────────────────────
 
+def _handle_checkout_completed(data: dict):
+    stripe_sub_id = data.get("subscription")
+    if not stripe_sub_id:
+        return
+
+    stripe.api_key = os.environ.get("STRIPE_SECRET_KEY")
+    try:
+        sub_data = stripe.Subscription.retrieve(stripe_sub_id, expand=["latest_invoice"])
+    except stripe.StripeError as e:
+        print(f"[webhook] Stripe retrieve error: {e}")
+        return
+
+    _handle_subscription_upsert(json.loads(str(sub_data)))
+
+
 def _handle_subscription_upsert(data: dict):
     stripe_sub_id = data["id"]
     stripe_customer_id = data["customer"]
     stripe_status = data["status"]
     period_start_ts = data.get("current_period_start")
     period_end_ts = data.get("current_period_end")
+    # Flexible billing mode subscriptions omit current_period_start/end.
+    # The invoice top-level period_start/end is just when items were added;
+    # the actual service window is on the first line item's period.
+    if not period_start_ts or not period_end_ts:
+        invoice = data.get("latest_invoice") or {}
+        if isinstance(invoice, dict):
+            line = ((invoice.get("lines") or {}).get("data") or [{}])[0]
+            line_period = line.get("period") or {}
+            period_start_ts = period_start_ts or line_period.get("start")
+            period_end_ts = period_end_ts or line_period.get("end")
     period_start = datetime.fromtimestamp(period_start_ts, tz=timezone.utc) if period_start_ts else None
     period_end = datetime.fromtimestamp(period_end_ts, tz=timezone.utc) if period_end_ts else None
 
     price_id = data.get("items", {}).get("data", [{}])[0].get("price", {}).get("id")
     plan_id = _plan_id_from_price(price_id)
+
+
 
     sub = db.session.execute(
         db.select(UserSubscription).where(
@@ -199,10 +226,20 @@ def _handle_subscription_upsert(data: dict):
     local_status = _map_stripe_status(stripe_status, sub)
 
     if sub is None:
+        if not period_start or not period_end:
+            return
         uid = (data.get("metadata") or {}).get("user_id")
         user = db.session.get(User, uid) if uid else _user_from_customer(stripe_customer_id)
         if user is None:
             return
+        # archive any previous active subscription for this user
+        db.session.execute(
+            db.update(UserSubscription).where(
+                UserSubscription.user_id == user.id,
+                UserSubscription.stripe_subscription_id != stripe_sub_id,
+                UserSubscription.status.in_([STATUS_ACTIVE, STATUS_CANCELLED, STATUS_PAST_DUE]),
+            ).values(status=STATUS_ARCHIVED, archived_at=datetime.now(timezone.utc))
+        )
         sub = UserSubscription(
             user_id=user.id,
             stripe_subscription_id=stripe_sub_id,
@@ -217,8 +254,10 @@ def _handle_subscription_upsert(data: dict):
         if plan_id:
             sub.plan_id = plan_id
         sub.status = local_status
-        sub.current_period_start = period_start
-        sub.current_period_end = period_end
+        if period_start:
+            sub.current_period_start = period_start
+        if period_end:
+            sub.current_period_end = period_end
 
     if period_end:
         _sync_user_expiry(sub.user_id, period_end if local_status == STATUS_ACTIVE else None)
