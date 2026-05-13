@@ -16,6 +16,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from api import cache, create_app, db
+from api.common.challenge_enums import MIXED_DIFFICULTY
 from api.models.achievement import Achievement
 from api.models.challenge import Challenge
 from api.models.challenge_pack import ChallengePack
@@ -48,6 +49,20 @@ def _get_challenge(pack_id: str, subject: str) -> Challenge | None:
     ).scalar_one_or_none()
 
 
+def _normalized_pack_difficulty(pack_data: dict) -> int:
+    if pack_data.get("difficulty") is not None:
+        return int(pack_data["difficulty"])
+
+    challenge_difficulties = {
+        int(challenge["difficulty"])
+        for challenge in pack_data.get("challenges", [])
+        if challenge.get("difficulty") is not None
+    }
+    if len(challenge_difficulties) == 1:
+        return next(iter(challenge_difficulties))
+    return MIXED_DIFFICULTY
+
+
 def _sync_packs(payload: dict, prune: bool) -> tuple[int, int, int, set[str]]:
     pack_count = 0
     challenge_count = 0
@@ -66,7 +81,7 @@ def _sync_packs(payload: dict, prune: bool) -> tuple[int, int, int, set[str]]:
             changed += 1
 
         pack.description = pack_data.get("description")
-        pack.difficulty = pack_data["difficulty"]
+        pack.difficulty = _normalized_pack_difficulty(pack_data)
         pack.is_active = pack_data.get("is_active", True)
         pack.subscription_access = pack_data.get("subscription_access", True)
         touched_pack_ids.add(pack.id)

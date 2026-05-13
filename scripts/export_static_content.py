@@ -19,10 +19,25 @@ from api.models.achievement import Achievement
 from api.models.challenge import Challenge
 from api.models.challenge_pack import ChallengePack
 from api.models.daily_challenge import DailyChallenge
+from api.common.challenge_enums import MIXED_DIFFICULTY
 
 
 DEFAULT_OUTPUT = os.path.join("data", "static_content.json")
 VERSION = 1
+
+
+def _pack_difficulty(pack: ChallengePack, challenges: list[Challenge]) -> int:
+    if pack.difficulty is not None:
+        return int(pack.difficulty)
+
+    challenge_difficulties = {
+        int(challenge.difficulty)
+        for challenge in challenges
+        if challenge.difficulty is not None
+    }
+    if len(challenge_difficulties) == 1:
+        return next(iter(challenge_difficulties))
+    return MIXED_DIFFICULTY
 
 
 def _challenge_payload(challenge: Challenge) -> dict:
@@ -36,16 +51,16 @@ def _challenge_payload(challenge: Challenge) -> dict:
 
 
 def _pack_payload(pack: ChallengePack) -> dict:
-    challenges = db.session.execute(
+    challenges = list(db.session.execute(
         db.select(Challenge)
         .where(Challenge.pack_id == pack.id)
         .order_by(Challenge.position, Challenge.subject)
-    ).scalars()
+    ).scalars())
 
     return {
         "name": pack.name,
         "description": pack.description,
-        "difficulty": int(pack.difficulty),
+        "difficulty": _pack_difficulty(pack, challenges),
         "is_active": bool(pack.is_active),
         "subscription_access": bool(pack.subscription_access),
         "challenges": [_challenge_payload(challenge) for challenge in challenges],
