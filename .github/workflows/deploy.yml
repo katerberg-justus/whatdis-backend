@@ -46,6 +46,10 @@ jobs:
             set -euo pipefail
             cd ~/whatdis/backend
             docker compose build api
+            docker compose up -d db
             docker compose run --rm api flask db upgrade
+            docker compose run --rm api python scripts/seed_achievements.py
+            docker compose run --rm api python scripts/seed_packs.py
+            docker compose run --rm api python scripts/seed_today.py
             docker compose up -d
             docker image prune -f
