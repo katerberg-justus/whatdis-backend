@@ -9,13 +9,12 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from api import create_app, db
 from api.models.challenge_pack import ChallengePack
 from api.models.challenge import Challenge
-from api.common.challenge_enums import PERSON, OBJECT, EASY, MEDIUM
+from api.common.challenge_enums import EASY, MEDIUM
 
 PACKS = [
     {
         "name": "Whisperers of the Silver Screen",
         "description": "Golden-age film icons",
-        "challenge_type": PERSON,
         "difficulty": MEDIUM,
         "subjects": [
             "Alfred Hitchcock", "Audrey Hepburn", "Charlie Chaplin", "Marilyn Monroe",
@@ -28,7 +27,6 @@ PACKS = [
     {
         "name": "Vessels of the Morning Ritual",
         "description": "Objects from the morning routine",
-        "challenge_type": OBJECT,
         "difficulty": EASY,
         "subjects": [
             "French press", "espresso machine", "kettle", "teapot", "coffee mug",
@@ -40,7 +38,6 @@ PACKS = [
     {
         "name": "Architects of the Unseen Realm",
         "description": "Pioneering scientists and inventors",
-        "challenge_type": PERSON,
         "difficulty": MEDIUM,
         "subjects": [
             "Marie Curie", "Nikola Tesla", "Albert Einstein", "Isaac Newton",
@@ -53,7 +50,6 @@ PACKS = [
     {
         "name": "Companions of the Long Voyage",
         "description": "Things you pack in a suitcase",
-        "challenge_type": OBJECT,
         "difficulty": EASY,
         "subjects": [
             "passport", "toothbrush", "sunglasses", "neck pillow", "paperback book",
@@ -65,7 +61,6 @@ PACKS = [
     {
         "name": "Sovereigns of Forgotten Ages",
         "description": "Historical rulers from across the ages",
-        "challenge_type": PERSON,
         "difficulty": MEDIUM,
         "subjects": [
             "Cleopatra", "Julius Caesar", "Genghis Khan", "Queen Elizabeth I",
@@ -78,7 +73,6 @@ PACKS = [
     {
         "name": "Inhabitants of the Tangled Wild",
         "description": "Things you find in a forest",
-        "challenge_type": OBJECT,
         "difficulty": EASY,
         "subjects": [
             "acorn", "pinecone", "mushroom", "fern", "moss", "fallen log",
@@ -90,7 +84,6 @@ PACKS = [
     {
         "name": "Voices of the Wandering Stage",
         "description": "Legendary musicians from across genres",
-        "challenge_type": PERSON,
         "difficulty": MEDIUM,
         "subjects": [
             "David Bowie", "Freddie Mercury", "Bob Dylan", "Joni Mitchell",
@@ -120,7 +113,6 @@ with app.app_context():
         pack = ChallengePack(
             name=pack_data["name"],
             description=pack_data["description"],
-            challenge_type=pack_data["challenge_type"],
             difficulty=pack_data["difficulty"],
             is_active=True,
         )
@@ -131,7 +123,6 @@ with app.app_context():
             db.session.add(Challenge(
                 pack_id=pack.id,
                 subject=subject,
-                challenge_type=pack_data["challenge_type"],
                 difficulty=pack_data["difficulty"],
                 is_active=True,
                 position=position,

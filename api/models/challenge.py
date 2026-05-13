@@ -15,8 +15,6 @@ class Challenge(BaseModel):
         nullable=False, index=True,
     )
     subject = db.Column(String(255), nullable=False)
-    # 0=person, 1=object
-    challenge_type = db.Column(TINYINT(unsigned=True), nullable=False)
     # 0=easy, 1=medium, 2=hard, 3=impossible
     difficulty = db.Column(TINYINT(unsigned=True), nullable=False, index=True)
     is_active = db.Column(Boolean, nullable=False, default=True)

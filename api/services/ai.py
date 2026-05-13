@@ -29,10 +29,8 @@ def _get_client() -> OpenAI:
     return _client
 
 
-def judge_guess(subject: str, challenge_type: int, content: str, prior_guesses: list[dict]) -> int:
+def judge_guess(subject: str, content: str, prior_guesses: list[dict]) -> int:
     """Call OpenAI and return a response_code integer (0–4)."""
-    from api.common.challenge_enums import CHALLENGE_TYPE_LABEL
-
     messages = [{"role": "system", "content": _SYSTEM.format(subject=subject)}]
     for g in prior_guesses[-3:]:
         messages.append({"role": "user", "content": g["content"]})

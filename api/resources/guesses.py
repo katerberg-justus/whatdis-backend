@@ -1,3 +1,4 @@
+import re
 from datetime import datetime, timezone
 from flask import request
 from flask_restful import Resource
@@ -14,6 +15,9 @@ from api.common.achievements import check_after_guess
 from api.resources.subscriptions import _active_subscription
 from api.common.subscription_plans import STATUS_ACTIVE, STATUS_CANCELLED
 from api.services.ai import judge_guess
+
+MIN_GUESS_LENGTH = 2
+MAX_GUESS_LENGTH = 80
 
 
 class GuessListResource(Resource):
@@ -33,9 +37,11 @@ class GuessListResource(Resource):
         _require_owner(game)
 
         data = request.get_json(silent=True) or {}
-        content = data.get("content", "").strip()
+        content = _clean_guess_content(data.get("content", ""))
         if not content:
             return {"error": "Missing field: content"}, 400
+        if not MIN_GUESS_LENGTH <= len(content) <= MAX_GUESS_LENGTH:
+            return {"error": f"Guess must be between {MIN_GUESS_LENGTH} and {MAX_GUESS_LENGTH} characters"}, 400
 
         challenge = db.session.get(Challenge, game.challenge_id)
         if challenge is None:
@@ -53,7 +59,7 @@ class GuessListResource(Resource):
         ).scalars().all()
         prior = [{"content": g.content, "response_code": g.response_code} for g in prior_guesses]
 
-        rc = judge_guess(challenge.subject, challenge.challenge_type, content, prior)
+        rc = judge_guess(challenge.subject, content, prior)
 
         if rc == WIN and game.completed_at is None:
             game.completed_at = datetime.now(timezone.utc)
@@ -104,6 +110,12 @@ def _require_owner(game: Game):
     if get_jwt_identity() != game.user_id:
         from flask_restful import abort
         abort(403)
+
+
+def _clean_guess_content(content: str) -> str:
+    content = re.sub(r"\s+", " ", str(content)).strip()
+    content = re.sub(r"([?!.,]){2,}", r"\1", content)
+    return content
 
 
 def _serialize(g: Guess) -> dict:

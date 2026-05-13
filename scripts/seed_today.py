@@ -13,7 +13,6 @@ from api.models.daily_challenge import DailyChallenge
 
 TODAY = date.today()
 
-# (subject, expected challenge_type) — must already exist in the challenges table
 DAILY_SUBJECTS = [
     "Donald Trump",
     "kettle",
@@ -34,19 +33,17 @@ with app.app_context():
         existing_slot = db.session.execute(
             db.select(DailyChallenge).where(
                 DailyChallenge.available_on == TODAY,
-                DailyChallenge.challenge_type == challenge.challenge_type,
                 DailyChallenge.difficulty == challenge.difficulty,
             )
         ).scalar_one_or_none()
 
         if existing_slot:
-            print(f"  ~ slot already exists for type={challenge.challenge_type} difficulty={challenge.difficulty} on {TODAY}")
+            print(f"  ~ slot already exists for difficulty={challenge.difficulty} on {TODAY}")
             continue
 
         db.session.add(DailyChallenge(
             challenge_id=challenge.id,
             available_on=TODAY,
-            challenge_type=challenge.challenge_type,
             difficulty=challenge.difficulty,
         ))
         print(f"  + scheduled '{subject}' for {TODAY}")

@@ -7,10 +7,7 @@ from api.models.daily_challenge import DailyChallenge
 from api.models.challenge import Challenge
 from api.models.game import Game
 from api.models.user import User
-from api.common.challenge_enums import (
-    VALID_CHALLENGE_TYPES, VALID_DIFFICULTIES,
-    CHALLENGE_TYPE_LABEL, DIFFICULTY_LABEL,
-)
+from api.common.challenge_enums import VALID_DIFFICULTIES, DIFFICULTY_LABEL
 from api.common.limits import daily_limit_for, guess_limit_for
 
 
@@ -53,7 +50,6 @@ def _serialize(dc: DailyChallenge, guess_limit: int, completed: bool = False) ->
         "id": dc.id,
         "challenge_id": dc.challenge_id,
         "available_on": dc.available_on.isoformat(),
-        "challenge_type": CHALLENGE_TYPE_LABEL.get(dc.challenge_type, dc.challenge_type),
         "difficulty": DIFFICULTY_LABEL.get(dc.difficulty, dc.difficulty),
         "guess_limit": guess_limit,
         "completed": completed,
@@ -72,7 +68,7 @@ class DailyChallengeListResource(Resource):
         today_slots = db.session.execute(
             db.select(DailyChallenge)
             .where(DailyChallenge.available_on == date.today())
-            .order_by(DailyChallenge.challenge_type, DailyChallenge.difficulty)
+            .order_by(DailyChallenge.difficulty)
         ).scalars().all()
 
         completed_ids = _completed_challenge_ids(user) if user else set()
@@ -111,7 +107,6 @@ class DailyChallengeListResource(Resource):
         slot = DailyChallenge(
             challenge_id=challenge.id,
             available_on=available_on,
-            challenge_type=challenge.challenge_type,
             difficulty=challenge.difficulty,
         )
         db.session.add(slot)
@@ -119,7 +114,7 @@ class DailyChallengeListResource(Resource):
             db.session.commit()
         except Exception:
             db.session.rollback()
-            return {"error": "A daily slot for that type/difficulty on that date already exists"}, 409
+            return {"error": "A daily slot for that difficulty on that date already exists"}, 409
 
         return _serialize(slot, guess_limit_for(None)), 201
 
@@ -156,7 +151,7 @@ class DailyChallengeByDateResource(Resource):
         slots = db.session.execute(
             db.select(DailyChallenge)
             .where(DailyChallenge.available_on == target)
-            .order_by(DailyChallenge.challenge_type, DailyChallenge.difficulty)
+            .order_by(DailyChallenge.difficulty)
         ).scalars().all()
         completed_ids = _completed_challenge_ids(user)
         return [_serialize(dc, guess_limit_for(user), dc.challenge_id in completed_ids) for dc in slots], 200

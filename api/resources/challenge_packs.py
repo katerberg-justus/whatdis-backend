@@ -10,9 +10,7 @@ from api.models.challenge import Challenge
 from api.models.game import Game
 from api.models.user_pack_access import UserPackAccess
 from api.common.challenge_enums import (
-    VALID_PACK_TYPES, VALID_PACK_DIFFICULTIES,
-    VALID_CHALLENGE_TYPES, VALID_DIFFICULTIES,
-    CHALLENGE_TYPE_LABEL, DIFFICULTY_LABEL,
+    VALID_PACK_DIFFICULTIES, VALID_DIFFICULTIES, DIFFICULTY_LABEL,
 )
 
 _CACHE_TTL = 3600  # 1 hour
@@ -111,7 +109,6 @@ def _serialize_pack(
         "id": p.id,
         "name": p.name,
         "description": p.description,
-        "challenge_type": CHALLENGE_TYPE_LABEL.get(p.challenge_type, p.challenge_type),
         "difficulty": DIFFICULTY_LABEL.get(p.difficulty, p.difficulty),
         "is_active": p.is_active,
         "subscription_access": p.subscription_access,
@@ -134,7 +131,6 @@ def _serialize_challenge(c: Challenge, completed: bool = False, is_locked: bool 
         "id": c.id,
         "pack_id": c.pack_id,
         "position": c.position,
-        "challenge_type": CHALLENGE_TYPE_LABEL.get(c.challenge_type, c.challenge_type),
         "difficulty": DIFFICULTY_LABEL.get(c.difficulty, c.difficulty),
         "is_active": c.is_active,
         "completed": completed,
@@ -200,18 +196,15 @@ class ChallengePackListResource(Resource):
 
     def post(self):
         data = request.get_json(silent=True) or {}
-        missing = [f for f in ("name", "challenge_type", "difficulty") if data.get(f) is None]
+        missing = [f for f in ("name", "difficulty") if data.get(f) is None]
         if missing:
             return {"error": f"Missing fields: {', '.join(missing)}"}, 400
-        if data["challenge_type"] not in VALID_PACK_TYPES:
-            return {"error": f"challenge_type must be one of {sorted(VALID_PACK_TYPES)}"}, 400
         if data["difficulty"] not in VALID_PACK_DIFFICULTIES:
             return {"error": f"difficulty must be one of {sorted(VALID_PACK_DIFFICULTIES)}"}, 400
 
         pack = ChallengePack(
             name=data["name"],
             description=data.get("description"),
-            challenge_type=data["challenge_type"],
             difficulty=data["difficulty"],
             is_active=data.get("is_active", True),
         )
@@ -247,10 +240,6 @@ class ChallengePackResource(Resource):
             pack.name = data["name"]
         if "description" in data:
             pack.description = data["description"]
-        if "challenge_type" in data:
-            if data["challenge_type"] not in VALID_PACK_TYPES:
-                return {"error": f"challenge_type must be one of {sorted(VALID_PACK_TYPES)}"}, 400
-            pack.challenge_type = data["challenge_type"]
         if "difficulty" in data:
             if data["difficulty"] not in VALID_PACK_DIFFICULTIES:
                 return {"error": f"difficulty must be one of {sorted(VALID_PACK_DIFFICULTIES)}"}, 400
@@ -288,11 +277,9 @@ class ChallengeListResource(Resource):
     def post(self, pack_id):
         pack = db.get_or_404(ChallengePack, pack_id)
         data = request.get_json(silent=True) or {}
-        missing = [f for f in ("subject", "challenge_type", "difficulty") if data.get(f) is None]
+        missing = [f for f in ("subject", "difficulty") if data.get(f) is None]
         if missing:
             return {"error": f"Missing fields: {', '.join(missing)}"}, 400
-        if data["challenge_type"] not in VALID_CHALLENGE_TYPES:
-            return {"error": f"challenge_type must be one of {sorted(VALID_CHALLENGE_TYPES)}"}, 400
         if data["difficulty"] not in VALID_DIFFICULTIES:
             return {"error": f"difficulty must be one of {sorted(VALID_DIFFICULTIES)}"}, 400
 
@@ -303,7 +290,6 @@ class ChallengeListResource(Resource):
         challenge = Challenge(
             pack_id=pack.id,
             subject=data["subject"],
-            challenge_type=data["challenge_type"],
             difficulty=data["difficulty"],
             is_active=data.get("is_active", True),
             position=data.get("position", next_position),
@@ -336,10 +322,6 @@ class ChallengeResource(Resource):
         data = request.get_json(silent=True) or {}
         if "subject" in data:
             challenge.subject = data["subject"]
-        if "challenge_type" in data:
-            if data["challenge_type"] not in VALID_CHALLENGE_TYPES:
-                return {"error": f"challenge_type must be one of {sorted(VALID_CHALLENGE_TYPES)}"}, 400
-            challenge.challenge_type = data["challenge_type"]
         if "difficulty" in data:
             if data["difficulty"] not in VALID_DIFFICULTIES:
                 return {"error": f"difficulty must be one of {sorted(VALID_DIFFICULTIES)}"}, 400
