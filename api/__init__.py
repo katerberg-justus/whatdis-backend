@@ -59,11 +59,14 @@ def create_app(config=None):
     app.config["JWT_ACCESS_TOKEN_EXPIRES"] = 3600
     app.config["JWT_REFRESH_TOKEN_EXPIRES"] = 2592000
     app.config["CACHE_TYPE"] = "RedisCache"
-    app.config["CACHE_REDIS_HOST"] = os.environ.get("REDIS_HOST", "localhost")
-    app.config["CACHE_REDIS_PORT"] = int(os.environ.get("REDIS_PORT", 6379))
+    default_redis_host = "localhost" if os.environ.get("FLASK_ENV") == "development" else "redis"
+    redis_host = os.environ.get("REDIS_HOST", default_redis_host)
+    redis_port = int(os.environ.get("REDIS_PORT", 6379))
+    app.config["CACHE_REDIS_HOST"] = redis_host
+    app.config["CACHE_REDIS_PORT"] = redis_port
     app.config["CACHE_REDIS_DB"] = int(os.environ.get("REDIS_DB", 0))
     app.config["RATELIMIT_STORAGE_URI"] = os.environ.get(
-        "RATELIMIT_STORAGE_URI", "redis://localhost:6379/1"
+        "RATELIMIT_STORAGE_URI", f"redis://{redis_host}:{redis_port}/1"
     )
 
     if config:

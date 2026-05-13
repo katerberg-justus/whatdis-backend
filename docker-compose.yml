@@ -8,6 +8,8 @@ services:
     environment:
       FLASK_ENV: production
       FLASK_DEBUG: "0"
+      REDIS_HOST: redis
+      RATELIMIT_STORAGE_URI: redis://redis:6379/1
     expose:
       - "8000"
     networks:
