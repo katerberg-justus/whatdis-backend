@@ -74,14 +74,21 @@ def _sync_packs(payload: dict, prune: bool) -> tuple[int, int, int, set[str]]:
     for pack_data in payload.get("challenge_packs", []):
         active_pack_names.add(pack_data["name"])
         pack = _get_pack_by_name(pack_data["name"])
+        pack_difficulty = _normalized_pack_difficulty(pack_data)
         if pack is None:
-            pack = ChallengePack(name=pack_data["name"])
+            pack = ChallengePack(
+                name=pack_data["name"],
+                description=pack_data.get("description"),
+                difficulty=pack_difficulty,
+                is_active=pack_data.get("is_active", True),
+                subscription_access=pack_data.get("subscription_access", True),
+            )
             db.session.add(pack)
             db.session.flush()
             changed += 1
 
         pack.description = pack_data.get("description")
-        pack.difficulty = _normalized_pack_difficulty(pack_data)
+        pack.difficulty = pack_difficulty
         pack.is_active = pack_data.get("is_active", True)
         pack.subscription_access = pack_data.get("subscription_access", True)
         touched_pack_ids.add(pack.id)
