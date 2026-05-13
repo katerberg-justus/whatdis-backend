@@ -85,6 +85,10 @@ def _require_owner(game: Game):
 
 
 def _serialize(g: Game) -> dict:
+    guess_count = db.session.execute(
+        db.select(func.count(Guess.id)).where(Guess.game_id == g.id)
+    ).scalar_one()
+
     duration_seconds = None
     if g.completed_at is not None:
         first_guess_at = db.session.execute(
@@ -93,12 +97,27 @@ def _serialize(g: Game) -> dict:
         if first_guess_at is not None:
             duration_seconds = int((g.completed_at - first_guess_at).total_seconds())
 
+    challenge = db.session.get(Challenge, g.challenge_id)
+
     return {
         "id": g.id,
         "challenge_id": g.challenge_id,
         "user_id": g.user_id,
         "completed_at": utc_isoformat(g.completed_at),
+        "guess_count": guess_count,
         "duration_seconds": duration_seconds,
+        "challenge": _serialize_challenge(challenge),
         "created_at": utc_isoformat(g.created_at),
         "updated_at": utc_isoformat(g.updated_at),
+    }
+
+
+def _serialize_challenge(challenge: Challenge | None) -> dict | None:
+    if challenge is None:
+        return None
+
+    return {
+        "id": challenge.id,
+        "subject": challenge.subject,
+        "icon": challenge.icon,
     }

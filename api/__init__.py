@@ -57,8 +57,6 @@ def create_app(config=None):
     app.config["JWT_REFRESH_CSRF_COOKIE_PATH"] = "/"
     app.config["JWT_ACCESS_CSRF_COOKIE_NAME"] = "csrf_access_token"
     app.config["JWT_REFRESH_CSRF_COOKIE_NAME"] = "csrf_refresh_token"
-    app.config["JWT_ACCESS_TOKEN_EXPIRES"] = 3600
-    app.config["JWT_REFRESH_TOKEN_EXPIRES"] = 2592000
     app.config["CACHE_TYPE"] = "RedisCache"
     default_redis_host = "localhost" if os.environ.get("FLASK_ENV") == "development" else "redis"
     redis_host = os.environ.get("REDIS_HOST", default_redis_host)
@@ -102,6 +100,10 @@ def create_app(config=None):
     def _invalid_token(reason):
         return {"msg": reason}, 401
 
+    @jwt.expired_token_loader
+    def _expired_token(jwt_header, jwt_payload):
+        return {"msg": "Token has expired"}, 401
+
     @jwt.unauthorized_loader
     def _missing_token(reason):
         return {"msg": reason}, 401
@@ -120,6 +122,10 @@ def create_app(config=None):
     api_errors = {
         "CSRFError": {
             "message": "Missing or invalid CSRF token",
+            "status": 401,
+        },
+        "ExpiredSignatureError": {
+            "message": "Token has expired",
             "status": 401,
         }
     }
