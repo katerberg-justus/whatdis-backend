@@ -1,24 +1,42 @@
+import json
 import os
 from openai import OpenAI
 from api.common.response_codes import NO, YES, INDECISIVE, REFUSAL, WIN, POSSIBLE, POSSIBLY_NOT
 
 _client = None
 
-_RC_MAP = {"CORRECT": YES, "INCORRECT": NO, "INDECISIVE": INDECISIVE, "REFUSAL": REFUSAL, "WIN": WIN, "POSSIBLE": POSSIBLE, "POSSIBLY_NOT": POSSIBLY_NOT}
-_RC_MAP_DIGIT = {"1": YES, "2": NO, "3": INDECISIVE, "4": REFUSAL, "5": WIN, "6": POSSIBLE, "7": POSSIBLY_NOT}
-_RC_MAP_INVERSE = {v: k for k, v in _RC_MAP.items()}
+_VALID_RESPONSE_CODES = {NO, YES, INDECISIVE, REFUSAL, WIN, POSSIBLE, POSSIBLY_NOT}
+_RESPONSE_FORMAT = {
+    "type": "json_schema",
+    "json_schema": {
+        "name": "guess_judgement",
+        "strict": True,
+        "schema": {
+            "type": "object",
+            "properties": {
+                "response_code": {
+                    "type": "integer",
+                    "enum": sorted(_VALID_RESPONSE_CODES),
+                },
+            },
+            "required": ["response_code"],
+            "additionalProperties": False,
+        },
+    },
+}
 
 _SYSTEM = """
 You are a 20-questions host.
 The secret: "{subject}".
-Answer the question with ONE digit only:
-1=yes,
-2=no,
-3=not sure/irrelevant,
-4=not a yes-or-no question,
-5=player named secret exactly,
-6=possible
-7=not likely
+Judge the player's latest message and return only the structured response.
+response_code values:
+0=no/factually wrong,
+1=yes/factually correct,
+2=not sure/irrelevant,
+3=not a yes-or-no question or refusal,
+4=player named the secret exactly,
+5=possible,
+6=not likely
 """
 
 
@@ -30,27 +48,35 @@ def _get_client() -> OpenAI:
 
 
 def judge_guess(subject: str, content: str, prior_guesses: list[dict]) -> int:
-    """Call OpenAI and return a response_code integer (0–4)."""
+    """Call OpenAI and return a response_code integer."""
     messages = [{"role": "system", "content": _SYSTEM.format(subject=subject)}]
     for g in prior_guesses[-3:]:
         messages.append({"role": "user", "content": g["content"]})
-        messages.append({"role": "assistant", "content": str(g["response_code"])})
+        messages.append(
+            {
+                "role": "assistant",
+                "content": json.dumps({"response_code": g["response_code"]}),
+            }
+        )
 
     messages.append({"role": "user", "content": content})
 
     response = _get_client().chat.completions.create(
         model=os.environ.get("OPENAI_MODEL", "gpt-5.4-mini"),
         messages=messages,
-        max_completion_tokens=5,
+        response_format=_RESPONSE_FORMAT,
+        max_completion_tokens=32,
         reasoning_effort="none",
         temperature=0,
     )
 
-    token = response.choices[0].message.content.strip().upper()
-    print(token)
-    return (
-        _RC_MAP_DIGIT.get(token) or
-        _RC_MAP.get(token) or
-        next((_RC_MAP.get(v) for k, v in _RC_MAP.items() if token in k), None)
-        or NO
-    )
+    message = response.choices[0].message
+    if getattr(message, "refusal", None):
+        return REFUSAL
+
+    try:
+        response_code = json.loads(message.content)["response_code"]
+    except (TypeError, KeyError, json.JSONDecodeError):
+        return NO
+
+    return response_code if response_code in _VALID_RESPONSE_CODES else NO
