@@ -72,7 +72,16 @@ def create_app(config=None):
     if config:
         app.config.update(config)
 
-    _origins = [o.strip() for o in os.environ.get("CORS_ORIGINS", "http://localhost:3000").split(",")]
+    default_cors_origins = (
+        "http://localhost:3000,http://localhost:5173"
+        if os.environ.get("FLASK_ENV") == "development"
+        else "https://app.whatdis.nl"
+    )
+    _origins = [
+        origin.strip()
+        for origin in os.environ.get("CORS_ORIGINS", default_cors_origins).split(",")
+        if origin.strip()
+    ]
     cors.init_app(app,
         origins=_origins,
         supports_credentials=True,
