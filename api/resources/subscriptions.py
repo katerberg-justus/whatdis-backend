@@ -114,6 +114,7 @@ class CheckoutSessionResource(Resource):
                 "cancel_url": cancel_url,
                 "metadata": {"user_id": uid, "currency": currency},
                 "subscription_data": {"metadata": {"user_id": uid, "currency": currency}},
+                "allow_promotion_codes": True,
             }
             if customer_id:
                 params["customer"] = customer_id
