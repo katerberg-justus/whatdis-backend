@@ -75,6 +75,14 @@ def get_energy(user, ip: str | None = None, is_subscribed: bool | None = None) -
     return remaining
 
 
+def award_claim_bonus(user) -> int:
+    """Award the guest-to-user energy bonus and return the new remaining energy."""
+    remaining = get_energy(user, is_subscribed=False)
+    remaining = min(ENERGY_DAILY_USER, remaining + ENERGY_DAILY_GUEST)
+    _set_user_energy_cache(user.id, remaining)
+    return remaining
+
+
 def consume_energy(user, ip: str | None = None, is_subscribed: bool | None = None) -> tuple[bool, int]:
     """
     Attempt to consume 1 energy.

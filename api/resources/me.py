@@ -6,7 +6,7 @@ from sqlalchemy.exc import IntegrityError
 from api import db, limiter
 from api.models.user import User
 from api.models.friendship import Friendship, PENDING, ACCEPTED
-from api.common.energy import get_energy
+from api.common.energy import get_energy, award_claim_bonus
 from api.common.base_model import utc_isoformat
 from api.common.limits import ENERGY_DAILY_GUEST, ENERGY_DAILY_USER, ENERGY_MAX_SUBSCRIBER
 from api.resources.subscriptions import _active_subscription, _serialize as _serialize_sub
@@ -85,6 +85,7 @@ class ClaimResource(Resource):
         user.set_password(data["password"])
         if data.get("name"):
             user.name = data["name"]
+        award_claim_bonus(user)
         user.is_guest = False
         try:
             db.session.commit()
