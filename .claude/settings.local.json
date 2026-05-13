@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(flask *)",
+      "Bash(.venv/Scripts/flask.exe *)"
+    ]
+  }
+}

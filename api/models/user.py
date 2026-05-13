@@ -3,6 +3,7 @@ from sqlalchemy import String, DateTime, Integer, Date, Boolean
 from werkzeug.security import generate_password_hash, check_password_hash
 from api import db
 from api.common.base_model import BaseModel
+from api.common.subscription_plans import DEFAULT_CURRENCY
 
 
 class User(BaseModel):
@@ -12,6 +13,7 @@ class User(BaseModel):
     email = db.Column(String(255), nullable=True, unique=True, index=True)
     password_hash = db.Column(String(255), nullable=True)
     is_guest = db.Column(Boolean, nullable=False, default=True)
+    currency = db.Column(String(3), nullable=False, default=DEFAULT_CURRENCY, server_default=DEFAULT_CURRENCY)
     subscription_expires_at  = db.Column(DateTime, nullable=True)
     # Subscriber carry-over energy — null for non-subscribers
     energy_balance           = db.Column(Integer, nullable=True)

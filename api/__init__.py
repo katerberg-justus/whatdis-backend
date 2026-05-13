@@ -84,6 +84,14 @@ def create_app(config=None):
 
     db.init_app(app)
     jwt.init_app(app)
+
+    @jwt.invalid_token_loader
+    def _invalid_token(reason):
+        return {"msg": reason}, 401
+
+    @jwt.unauthorized_loader
+    def _missing_token(reason):
+        return {"msg": reason}, 401
     cache.init_app(app)
     limiter.init_app(app)
 

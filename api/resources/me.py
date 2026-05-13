@@ -10,7 +10,13 @@ from api.common.energy import get_energy
 from api.common.base_model import utc_isoformat
 from api.common.limits import ENERGY_DAILY_GUEST, ENERGY_DAILY_USER, ENERGY_MAX_SUBSCRIBER
 from api.resources.subscriptions import _active_subscription, _serialize as _serialize_sub
-from api.common.subscription_plans import STATUS_ACTIVE, STATUS_CANCELLED
+from api.common.subscription_plans import (
+    DEFAULT_CURRENCY,
+    STATUS_ACTIVE,
+    STATUS_CANCELLED,
+    SUPPORTED_CURRENCIES,
+    normalize_currency,
+)
 
 
 def _current_user() -> User:
@@ -28,6 +34,12 @@ class MeResource(Resource):
         return _serialize_user(user), 200
 
     def put(self):
+        return self._update()
+
+    def patch(self):
+        return self._update()
+
+    def _update(self):
         user = _current_user()
         data = request.get_json(silent=True) or {}
         if "name" in data:
@@ -36,6 +48,11 @@ class MeResource(Resource):
             user.email = data["email"]
         if "password" in data:
             user.set_password(data["password"])
+        if "currency" in data:
+            currency = normalize_currency(data["currency"])
+            if currency is None:
+                return {"error": f"Invalid currency. Choose from: {', '.join(sorted(SUPPORTED_CURRENCIES))}"}, 400
+            user.currency = currency
         try:
             db.session.commit()
         except IntegrityError:
@@ -175,6 +192,7 @@ def _serialize_user(u: User) -> dict:
         "id": u.id,
         "name": u.name,
         "email": u.email,
+        "currency": u.currency or DEFAULT_CURRENCY,
         "is_guest": u.is_guest,
         "is_subscribed": is_subscribed,
         "subscription": _serialize_sub(sub) if sub else None,
