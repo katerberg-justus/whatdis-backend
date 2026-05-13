@@ -1,5 +1,5 @@
 from flask import Flask, request as flask_request
-from flask_restful import Api
+from flask_restful import Api as RestfulApi
 from flask_jwt_extended import JWTManager
 from flask_jwt_extended.exceptions import CSRFError
 from flask_limiter import Limiter
@@ -20,6 +20,19 @@ jwt = JWTManager()
 cache = Cache()
 limiter = Limiter(key_func=get_remote_address)
 cors = CORS()
+
+
+class Api(RestfulApi):
+    def handle_error(self, error):
+        error_config = self.errors.get(type(error).__name__)
+        if error_config and error_config.get("status", 500) < 500:
+            data = {"message": "Internal Server Error", **error_config}
+            response = self.make_response(data, error_config["status"])
+            if error_config["status"] == 401:
+                return self.unauthorized(response)
+            return response
+
+        return super().handle_error(error)
 
 
 def create_app(config=None):
