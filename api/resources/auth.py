@@ -6,12 +6,22 @@ from flask_jwt_extended import (
     create_refresh_token,
     jwt_required,
     get_jwt_identity,
+    get_csrf_token,
     set_access_cookies,
     set_refresh_cookies,
     unset_jwt_cookies,
 )
 from api import db, limiter
 from api.models.user import User
+
+
+def _csrf_payload(access_token=None, refresh_token=None):
+    csrf = {}
+    if access_token:
+        csrf["access"] = get_csrf_token(access_token)
+    if refresh_token:
+        csrf["refresh"] = get_csrf_token(refresh_token)
+    return {"csrf": csrf} if csrf else {}
 
 
 class LoginResource(Resource):
@@ -35,7 +45,8 @@ class LoginResource(Resource):
         access_token = create_access_token(identity=user.id)
         refresh_token = create_refresh_token(identity=user.id)
 
-        resp = make_response({"message": "Logged in"}, 200)
+        body = {"message": "Logged in", **_csrf_payload(access_token, refresh_token)}
+        resp = make_response(body, 200)
         set_access_cookies(resp, access_token)
         set_refresh_cookies(resp, refresh_token)
         return resp
@@ -46,7 +57,8 @@ class RefreshResource(Resource):
 
     def post(self):
         access_token = create_access_token(identity=get_jwt_identity())
-        resp = make_response({"message": "Token refreshed"}, 200)
+        body = {"message": "Token refreshed", **_csrf_payload(access_token)}
+        resp = make_response(body, 200)
         set_access_cookies(resp, access_token)
         return resp
 
@@ -64,7 +76,11 @@ class GuestLoginResource(Resource):
 
         access_token = create_access_token(identity=guest.id)
         refresh_token = create_refresh_token(identity=guest.id)
-        resp = make_response({"message": "Guest session created"}, 201)
+        body = {
+            "message": "Guest session created",
+            **_csrf_payload(access_token, refresh_token),
+        }
+        resp = make_response(body, 201)
         set_access_cookies(resp, access_token)
         set_refresh_cookies(resp, refresh_token)
         return resp

@@ -1,6 +1,7 @@
 from flask import Flask, request as flask_request
 from flask_restful import Api
 from flask_jwt_extended import JWTManager
+from flask_jwt_extended.exceptions import CSRFError
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_caching import Cache
@@ -104,6 +105,11 @@ def create_app(config=None):
     @jwt.unauthorized_loader
     def _missing_token(reason):
         return {"msg": reason}, 401
+
+    @app.errorhandler(CSRFError)
+    def _csrf_error(error):
+        return {"msg": str(error)}, 401
+
     cache.init_app(app)
     limiter.init_app(app)
 
@@ -111,8 +117,14 @@ def create_app(config=None):
 
     migrate.init_app(app, db)
 
-    rest_api = Api(app, prefix="/api/v1")
-    root_api = Api(app)
+    api_errors = {
+        "CSRFError": {
+            "message": "Missing or invalid CSRF token",
+            "status": 401,
+        }
+    }
+    rest_api = Api(app, prefix="/api/v1", errors=api_errors)
+    root_api = Api(app, errors=api_errors)
 
     from api.resources import register_resources, register_root_resources
     register_resources(rest_api)
