@@ -9,7 +9,33 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy over SSH
+      - uses: actions/checkout@v4
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          ssh-keyscan -p "${{ secrets.VPS_PORT || 22 }}" "${{ secrets.VPS_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Rsync to VPS
+        run: |
+          ssh -p "${{ secrets.VPS_PORT || 22 }}" -i ~/.ssh/id_deploy \
+            "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}" \
+            "mkdir -p ~/whatdis/backend"
+          rsync -az --delete \
+            -e "ssh -p ${{ secrets.VPS_PORT || 22 }} -i ~/.ssh/id_deploy" \
+            --exclude '.git' \
+            --exclude '.github' \
+            --exclude '__pycache__' \
+            --exclude '*.pyc' \
+            --exclude '.venv' \
+            --exclude '.idea' \
+            --exclude '.env*' \
+            --exclude 'instance' \
+            ./ "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/whatdis/backend/"
+
+      - name: Migrate, build, and restart
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.VPS_HOST }}
@@ -19,7 +45,6 @@ jobs:
           script: |
             set -euo pipefail
             cd ~/whatdis/backend
-            git pull --ff-only
             docker compose build api
             docker compose run --rm api flask db upgrade
             docker compose up -d
