@@ -25,10 +25,11 @@ def create_app(config=None):
     app = Flask(__name__, instance_relative_config=True)
 
     app.config["SECRET_KEY"] = os.environ["SECRET_KEY"]
+    db_host = "localhost" if os.environ.get("FLASK_ENV") == "development" else os.environ['DB_HOST']
     app.config["SQLALCHEMY_DATABASE_URI"] = (
         f"mariadb+mariadbconnector://"
         f"{os.environ['DB_USER']}:{os.environ['DB_PASSWORD']}"
-        f"@{os.environ['DB_HOST']}:{os.environ.get('DB_PORT', 3306)}"
+        f"@{db_host}:{os.environ.get('DB_PORT', 3306)}"
         f"/{os.environ['DB_NAME']}"
     )
     app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
