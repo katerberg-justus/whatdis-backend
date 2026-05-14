@@ -27,6 +27,21 @@ def _bust_pack_cache(pack_id: str | None = None) -> None:
         cache.delete(_pack_challenges_key(pack_id))
 
 
+def _public_challenge_filters() -> tuple:
+    return (
+        Challenge.is_active == True,
+        Challenge.sticker.is_not(None),
+    )
+
+
+def _pack_has_public_challenge(pack_id: str) -> bool:
+    return db.session.execute(
+        db.select(Challenge.id)
+        .where(Challenge.pack_id == pack_id, *_public_challenge_filters())
+        .limit(1)
+    ).scalar_one_or_none() is not None
+
+
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 def _has_access(pack: ChallengePack, user_id: str) -> bool:
@@ -56,12 +71,15 @@ def _cached_packs() -> tuple[list, dict]:
     if hit is not None:
         return hit
     packs = db.session.execute(
-        db.select(ChallengePack).where(ChallengePack.is_active == True)
+        db.select(ChallengePack)
+        .join(Challenge, Challenge.pack_id == ChallengePack.id)
+        .where(ChallengePack.is_active == True, *_public_challenge_filters())
+        .distinct()
     ).scalars().all()
     pack_ids = [p.id for p in packs]
     total_counts = dict(db.session.execute(
         db.select(Challenge.pack_id, func.count())
-        .where(Challenge.pack_id.in_(pack_ids), Challenge.is_active == True)
+        .where(Challenge.pack_id.in_(pack_ids), *_public_challenge_filters())
         .group_by(Challenge.pack_id)
     ).all()) if pack_ids else {}
     result = (packs, total_counts)
@@ -77,7 +95,7 @@ def _cached_challenges(pack_id: str) -> list:
         return hit
     challenges = db.session.execute(
         db.select(Challenge)
-        .where(Challenge.pack_id == pack_id, Challenge.is_active == True)
+        .where(Challenge.pack_id == pack_id, *_public_challenge_filters())
         .order_by(asc(Challenge.position))
     ).scalars().all()
     cache.set(key, challenges, timeout=_CACHE_TTL)
@@ -90,6 +108,7 @@ def _completed_ids_for_pack(pack_id: str, user_id: str) -> set:
         .join(Challenge, Challenge.id == Game.challenge_id)
         .where(
             Challenge.pack_id == pack_id,
+            *_public_challenge_filters(),
             Game.user_id == user_id,
             Game.completed_at.is_not(None),
         )
@@ -161,6 +180,7 @@ class ChallengePackListResource(Resource):
             .join(Game, Game.challenge_id == Challenge.id)
             .where(
                 Challenge.pack_id.in_(pack_ids),
+                *_public_challenge_filters(),
                 Game.user_id == uid,
                 Game.completed_at.isnot(None),
             )
@@ -222,6 +242,8 @@ class ChallengePackResource(Resource):
     def get(self, pack_id):
         uid = get_jwt_identity()
         pack = db.get_or_404(ChallengePack, pack_id)
+        if not _pack_has_public_challenge(pack_id):
+            abort(404)
         _require_access(pack, uid)
         challenges = _cached_challenges(pack_id)
         completed_ids = _completed_ids_for_pack(pack_id, uid)
@@ -266,6 +288,8 @@ class ChallengeListResource(Resource):
     def get(self, pack_id):
         uid = get_jwt_identity()
         pack = db.get_or_404(ChallengePack, pack_id)
+        if not _pack_has_public_challenge(pack_id):
+            abort(404)
         _require_access(pack, uid)
         challenges = _cached_challenges(pack_id)
         completed_ids = _completed_ids_for_pack(pack_id, uid)
@@ -307,8 +331,10 @@ class ChallengeResource(Resource):
     def get(self, pack_id, challenge_id):
         uid = get_jwt_identity()
         pack = db.get_or_404(ChallengePack, pack_id)
+        if not _pack_has_public_challenge(pack_id):
+            abort(404)
         _require_access(pack, uid)
-        challenge = _get_challenge(pack_id, challenge_id)
+        challenge = _get_challenge(pack_id, challenge_id, require_public=True)
         completed = db.session.execute(
             db.select(Game).where(
                 Game.challenge_id == challenge_id,
@@ -343,12 +369,13 @@ class ChallengeResource(Resource):
         return {}, 204
 
 
-def _get_challenge(pack_id: str, challenge_id: str) -> Challenge:
+def _get_challenge(pack_id: str, challenge_id: str, require_public: bool = False) -> Challenge:
+    filters = [Challenge.id == challenge_id, Challenge.pack_id == pack_id]
+    if require_public:
+        filters.extend(_public_challenge_filters())
+
     challenge = db.session.execute(
-        db.select(Challenge).where(
-            Challenge.id == challenge_id,
-            Challenge.pack_id == pack_id,
-        )
+        db.select(Challenge).where(*filters)
     ).scalar_one_or_none()
     if challenge is None:
         abort(404)

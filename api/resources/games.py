@@ -46,6 +46,8 @@ class GameListResource(Resource):
 
         if not is_daily:
             from api.resources.challenge_packs import _has_access
+            if not challenge.is_active or challenge.sticker is None:
+                return {"error": "Challenge not found"}, 404
             pack = db.session.get(ChallengePack, challenge.pack_id)
             if pack is None or not _has_access(pack, uid):
                 return {"error": "Pack access required"}, 403
@@ -138,11 +140,12 @@ def _serialize_challenge(challenge: Challenge | None, completed: bool = False) -
 def _next_challenge(challenge: Challenge | None) -> Challenge | None:
     if challenge is None:
         return None
+    from api.resources.challenge_packs import _public_challenge_filters
     return db.session.execute(
         db.select(Challenge)
         .where(
             Challenge.pack_id == challenge.pack_id,
-            Challenge.is_active.is_(True),
+            *_public_challenge_filters(),
             Challenge.position > challenge.position,
         )
         .order_by(Challenge.position.asc())
