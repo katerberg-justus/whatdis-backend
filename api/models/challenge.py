@@ -19,15 +19,8 @@ class Challenge(BaseModel):
     difficulty = db.Column(TINYINT(unsigned=True), nullable=False, index=True)
     is_active = db.Column(Boolean, nullable=False, default=True, server_default="1")
     icon = db.Column(Text, nullable=True)
+    sticker = db.Column(Text, nullable=True)
     position = db.Column(Integer, nullable=False, default=0, server_default="0")
-
-    @property
-    def sticker(self):
-        return self.icon
-
-    @sticker.setter
-    def sticker(self, value):
-        self.icon = value
 
     pack = db.relationship("ChallengePack", back_populates="challenges")
     daily_slots = db.relationship(

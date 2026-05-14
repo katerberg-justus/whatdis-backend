@@ -1185,140 +1185,160 @@
           "subject": "Paris",
           "difficulty": 0,
           "is_active": true,
-          "icon": "0f49ef8e-49b7-4b8e-b450-bbb779413a56",
+          "icon": null,
+          "sticker": "0f49ef8e-49b7-4b8e-b450-bbb779413a56",
           "position": 1
         },
         {
           "subject": "Tokyo",
           "difficulty": 0,
           "is_active": true,
-          "icon": "242f729f-0e51-4ef5-a1b0-bdb33c46fafe",
+          "icon": null,
+          "sticker": "242f729f-0e51-4ef5-a1b0-bdb33c46fafe",
           "position": 2
         },
         {
           "subject": "New York City",
           "difficulty": 0,
           "is_active": true,
-          "icon": "3e633fbf-945b-45ad-b87f-fd463ddb98b3",
+          "icon": null,
+          "sticker": "3e633fbf-945b-45ad-b87f-fd463ddb98b3",
           "position": 3
         },
         {
           "subject": "London",
           "difficulty": 0,
           "is_active": true,
-          "icon": "7ec83d86-6094-4260-826c-b0465b6286ff",
+          "icon": null,
+          "sticker": "7ec83d86-6094-4260-826c-b0465b6286ff",
           "position": 4
         },
         {
           "subject": "Rome",
           "difficulty": 0,
           "is_active": true,
-          "icon": "afa156b5-9fcc-491c-827b-025b0b211936",
+          "icon": null,
+          "sticker": "afa156b5-9fcc-491c-827b-025b0b211936",
           "position": 5
         },
         {
           "subject": "Amsterdam",
           "difficulty": 0,
           "is_active": true,
-          "icon": "911db411-765a-4399-8219-53f202471582",
+          "icon": null,
+          "sticker": "911db411-765a-4399-8219-53f202471582",
           "position": 6
         },
         {
           "subject": "Sydney",
           "difficulty": 0,
           "is_active": true,
-          "icon": "3271cb0f-3628-47f5-b856-bae0eba86df4",
+          "icon": null,
+          "sticker": "3271cb0f-3628-47f5-b856-bae0eba86df4",
           "position": 7
         },
         {
           "subject": "Venice",
           "difficulty": 0,
           "is_active": true,
-          "icon": "0006881d-666a-48c2-91f6-6b4ed3f5a3fb",
+          "icon": null,
+          "sticker": "0006881d-666a-48c2-91f6-6b4ed3f5a3fb",
           "position": 8
         },
         {
           "subject": "Cairo",
           "difficulty": 1,
           "is_active": true,
-          "icon": "d79ed3a5-cbf2-430c-b6a1-5dc3df8f953b",
+          "icon": null,
+          "sticker": "d79ed3a5-cbf2-430c-b6a1-5dc3df8f953b",
           "position": 9
         },
         {
           "subject": "Buenos Aires",
           "difficulty": 1,
           "is_active": true,
-          "icon": "3be30a45-d201-4765-8f2b-15d2f72e2950",
+          "icon": null,
+          "sticker": "3be30a45-d201-4765-8f2b-15d2f72e2950",
           "position": 10
         },
         {
           "subject": "Cape Town",
           "difficulty": 1,
           "is_active": true,
-          "icon": "d06ba41c-43e3-4a85-8ca3-ecf247129c79",
+          "icon": null,
+          "sticker": "d06ba41c-43e3-4a85-8ca3-ecf247129c79",
           "position": 11
         },
         {
           "subject": "Marrakesh",
           "difficulty": 1,
           "is_active": true,
-          "icon": "8daa97c7-c9ec-445a-b05e-f0826d3c71f2",
+          "icon": null,
+          "sticker": "8daa97c7-c9ec-445a-b05e-f0826d3c71f2",
           "position": 12
         },
         {
           "subject": "Istanbul",
           "difficulty": 1,
           "is_active": true,
-          "icon": "8ceebdf3-9b96-4918-9d96-354d711c07e0",
+          "icon": null,
+          "sticker": "8ceebdf3-9b96-4918-9d96-354d711c07e0",
           "position": 13
         },
         {
           "subject": "Seoul",
           "difficulty": 1,
           "is_active": true,
-          "icon": "d20684f5-d748-4d10-8005-29191417b9f4",
+          "icon": null,
+          "sticker": "d20684f5-d748-4d10-8005-29191417b9f4",
           "position": 14
         },
         {
           "subject": "Bangkok",
           "difficulty": 1,
           "is_active": true,
-          "icon": "c5743ceb-b53f-4a43-b50a-3ffe68f08e69",
+          "icon": null,
+          "sticker": "c5743ceb-b53f-4a43-b50a-3ffe68f08e69",
           "position": 15
         },
         {
           "subject": "Prague",
           "difficulty": 1,
           "is_active": true,
-          "icon": "f288dfdf-48ab-434a-8c8c-17cd7fe405e5",
+          "icon": null,
+          "sticker": "f288dfdf-48ab-434a-8c8c-17cd7fe405e5",
           "position": 16
         },
         {
           "subject": "Reykjavik",
           "difficulty": 2,
           "is_active": true,
-          "icon": "7dc4bb3c-4623-4fd5-9096-e0abc3592ee1",
+          "icon": null,
+          "sticker": "7dc4bb3c-4623-4fd5-9096-e0abc3592ee1",
           "position": 17
         },
         {
           "subject": "Kathmandu",
           "difficulty": 2,
           "is_active": true,
-          "icon": "dc794e76-354f-4b5c-ac29-a5078aab84b7",
+          "icon": null,
+          "sticker": "dc794e76-354f-4b5c-ac29-a5078aab84b7",
           "position": 18
         },
         {
           "subject": "Dubrovnik",
           "difficulty": 2,
           "is_active": true,
-          "icon": "0f3b259d-695c-4d9e-85ce-7e84c5ce9f71",
+          "icon": null,
+          "sticker": "0f3b259d-695c-4d9e-85ce-7e84c5ce9f71",
           "position": 19
         },
         {
           "subject": "Timbuktu",
           "difficulty": 2,
           "is_active": true,
-          "icon": "74cb180d-51ce-4c8f-8020-474a98e16e9b",
+          "icon": null,
+          "sticker": "74cb180d-51ce-4c8f-8020-474a98e16e9b",
           "position": 20
         }
       ]

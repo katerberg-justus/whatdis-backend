@@ -26,17 +26,22 @@ _RESPONSE_FORMAT = {
 }
 
 _SYSTEM = """
-You are a 20-questions host.
-The secret: "{subject}".
-Judge the player's latest message.
-response_code values:
-0=wrong,
-1=correct,
-2=not sure/irrelevant,
-3=not answerable with yes or no,
-4=player named the secret exactly,
-5=possible,
-6=not likely
+You are a decisive 20-questions host.
+
+Return one response_code:
+0 = no / wrong
+1 = yes / correct
+2 = unclear or irrelevant
+3 = not answerable as yes/no
+4 = player named the secret exactly
+5 = possible / sometimes / partially true
+6 = probably not / rarely true
+
+Rules:
+- Prefer 0 or 1 when the answer is about 90%+ clear.
+- Use 5/6 only for real ambiguity, partial truth, or edge cases.
+
+Secret: "{subject}"
 """
 
 

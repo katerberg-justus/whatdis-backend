@@ -293,7 +293,8 @@ class ChallengeListResource(Resource):
             subject=data["subject"],
             difficulty=data["difficulty"],
             is_active=data.get("is_active", True),
-            icon=data.get("sticker", data.get("icon")),
+            icon=data.get("icon"),
+            sticker=data.get("sticker"),
             position=data.get("position", next_position),
         )
         db.session.add(challenge)
@@ -330,8 +331,10 @@ class ChallengeResource(Resource):
             challenge.difficulty = data["difficulty"]
         if "is_active" in data:
             challenge.is_active = bool(data["is_active"])
-        if "sticker" in data or "icon" in data:
-            challenge.sticker = data.get("sticker", data.get("icon"))
+        if "icon" in data:
+            challenge.icon = data.get("icon")
+        if "sticker" in data:
+            challenge.sticker = data.get("sticker")
         db.session.commit()
         _bust_pack_cache(pack_id)
         return _serialize_challenge(challenge), 200
