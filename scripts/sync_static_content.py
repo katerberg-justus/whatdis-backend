@@ -108,7 +108,7 @@ def _sync_packs(payload: dict, prune: bool) -> tuple[int, int, int, set[str]]:
 
             challenge.difficulty = challenge_data["difficulty"]
             challenge.is_active = challenge_data.get("is_active", True)
-            challenge.sticker = challenge_data.get("sticker", challenge_data.get("icon"))
+            challenge.sticker = challenge_data.get("sticker")
             challenge.position = challenge_data.get("position", 0)
             challenge_count += 1
 

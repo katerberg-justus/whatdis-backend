@@ -112,7 +112,7 @@ def _serialize(g: Game) -> dict:
         "completed_at": utc_isoformat(g.completed_at),
         "guess_count": guess_count,
         "duration_seconds": duration_seconds,
-        "challenge": _serialize_challenge(challenge),
+        "challenge": _serialize_challenge(challenge, completed=g.completed_at is not None),
         "pack_id": challenge.pack_id if challenge else None,
         "pack_name": pack.name if pack else None,
         "position": _ordinal_position(challenge),
@@ -124,15 +124,14 @@ def _serialize(g: Game) -> dict:
     }
 
 
-def _serialize_challenge(challenge: Challenge | None) -> dict | None:
+def _serialize_challenge(challenge: Challenge | None, completed: bool = False) -> dict | None:
     if challenge is None:
         return None
 
     return {
         "id": challenge.id,
         "subject": challenge.subject,
-        "icon": challenge.icon,
-        "sticker": challenge.sticker,
+        "sticker": challenge.sticker if completed else None,
     }
 
 

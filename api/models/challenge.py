@@ -18,7 +18,6 @@ class Challenge(BaseModel):
     # 0=easy, 1=medium, 2=hard, 3=impossible
     difficulty = db.Column(TINYINT(unsigned=True), nullable=False, index=True)
     is_active = db.Column(Boolean, nullable=False, default=True, server_default="1")
-    icon = db.Column(Text, nullable=True)
     sticker = db.Column(Text, nullable=True)
     position = db.Column(Integer, nullable=False, default=0, server_default="0")
 

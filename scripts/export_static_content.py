@@ -45,7 +45,6 @@ def _challenge_payload(challenge: Challenge) -> dict:
         "subject": challenge.subject,
         "difficulty": int(challenge.difficulty),
         "is_active": bool(challenge.is_active),
-        "icon": challenge.icon,
         "sticker": challenge.sticker,
         "position": int(challenge.position),
     }
