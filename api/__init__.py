@@ -87,7 +87,7 @@ def create_app(config=None):
     default_cors_origins = (
         "http://localhost:3000,http://localhost:5173"
         if os.environ.get("FLASK_ENV") == "development"
-        else "https://app.whatdis.nl"
+        else "https://app.whatdis.nl,https://whatdis.nl"
     )
     _origins = [
         origin.strip()

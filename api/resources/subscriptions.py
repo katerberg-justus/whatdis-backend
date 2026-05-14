@@ -172,9 +172,17 @@ class StripeWebhookResource(Resource):
         sig = request.headers.get("Stripe-Signature", "")
         secret = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
 
+        if not secret:
+            print("[webhook] STRIPE_WEBHOOK_SECRET is not configured")
+            return {"error": "Webhook secret not configured"}, 500
+
         try:
             event = stripe.Webhook.construct_event(payload, sig, secret)
-        except (stripe.SignatureVerificationError, ValueError):
+        except stripe.SignatureVerificationError as e:
+            print(f"[webhook] Invalid Stripe signature: {e}")
+            return {"error": "Invalid signature"}, 400
+        except ValueError as e:
+            print(f"[webhook] Invalid Stripe payload: {e}")
             return {"error": "Invalid signature"}, 400
 
         event_dict = _stripe_obj_to_dict(event)
