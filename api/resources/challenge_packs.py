@@ -14,17 +14,19 @@ from api.common.challenge_enums import (
 )
 
 _CACHE_TTL = 3600  # 1 hour
-_PACKS_CACHE_KEY = "challenge_packs:list"
+_PACKS_CACHE_KEY = "challenge_packs:list:public-stickers:v1"
 
 
 def _pack_challenges_key(pack_id: str) -> str:
-    return f"challenge_packs:challenges:{pack_id}"
+    return f"challenge_packs:challenges:public-stickers:v1:{pack_id}"
 
 
 def _bust_pack_cache(pack_id: str | None = None) -> None:
     cache.delete(_PACKS_CACHE_KEY)
+    cache.delete("challenge_packs:list")
     if pack_id:
         cache.delete(_pack_challenges_key(pack_id))
+        cache.delete(f"challenge_packs:challenges:{pack_id}")
 
 
 def _public_challenge_filters() -> tuple:
