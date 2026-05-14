@@ -54,6 +54,8 @@ def _serialize(dc: DailyChallenge, guess_limit: int, completed: bool = False) ->
         "guess_limit": guess_limit,
         "completed": completed,
         "subject": dc.challenge.subject if (completed and dc.challenge) else None,
+        "icon": dc.challenge.icon if (completed and dc.challenge) else None,
+        "sticker": dc.challenge.sticker if (completed and dc.challenge) else None,
     }
 
 

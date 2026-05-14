@@ -137,6 +137,7 @@ def _serialize_challenge(c: Challenge, completed: bool = False, is_locked: bool 
         "is_locked": is_locked,
         "subject": c.subject if completed else None,
         "icon": c.icon if completed else None,
+        "sticker": c.sticker if completed else None,
         "created_at": utc_isoformat(c.created_at),
         "updated_at": utc_isoformat(c.updated_at),
     }
@@ -292,6 +293,7 @@ class ChallengeListResource(Resource):
             subject=data["subject"],
             difficulty=data["difficulty"],
             is_active=data.get("is_active", True),
+            icon=data.get("sticker", data.get("icon")),
             position=data.get("position", next_position),
         )
         db.session.add(challenge)
@@ -328,6 +330,8 @@ class ChallengeResource(Resource):
             challenge.difficulty = data["difficulty"]
         if "is_active" in data:
             challenge.is_active = bool(data["is_active"])
+        if "sticker" in data or "icon" in data:
+            challenge.sticker = data.get("sticker", data.get("icon"))
         db.session.commit()
         _bust_pack_cache(pack_id)
         return _serialize_challenge(challenge), 200

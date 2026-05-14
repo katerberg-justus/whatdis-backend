@@ -21,6 +21,14 @@ class Challenge(BaseModel):
     icon = db.Column(Text, nullable=True)
     position = db.Column(Integer, nullable=False, default=0, server_default="0")
 
+    @property
+    def sticker(self):
+        return self.icon
+
+    @sticker.setter
+    def sticker(self, value):
+        self.icon = value
+
     pack = db.relationship("ChallengePack", back_populates="challenges")
     daily_slots = db.relationship(
         "DailyChallenge", back_populates="challenge", lazy="dynamic",
