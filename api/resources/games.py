@@ -132,7 +132,7 @@ def _serialize_challenge(challenge: Challenge | None, completed: bool = False) -
 
     return {
         "id": challenge.id,
-        "subject": challenge.subject,
+        "subject": challenge.subject if completed else None,
         "sticker": challenge.sticker if completed else None,
     }
 
