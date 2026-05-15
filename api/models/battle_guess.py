@@ -16,9 +16,10 @@ class BattleGuess(BaseModel):
         nullable=False, index=True,
     )
     content = db.Column(Text, nullable=False)
-    # 0=no, 1=yes, 2=indecisive, 3=refusal, 4=win
+    # 0=no, 1=yes, 2=indecisive, 3=refusal, 4=win, 5=possible, 6=possibly_not
     response_code = db.Column(TINYINT(unsigned=True), nullable=False)
     turn_number = db.Column(Integer, nullable=False)
+    raw_response = db.Column(Text, nullable=True)
 
     battle = db.relationship("Battle", back_populates="guesses")
     user = db.relationship("User")

@@ -1,4 +1,5 @@
 import re
+import unicodedata
 from datetime import datetime, timezone
 from flask import request
 from flask_restful import Resource
@@ -54,14 +55,17 @@ class GuessListResource(Resource):
         if not allowed:
             return {"error": "No energy remaining. Come back tomorrow."}, 429
 
-        prior_guesses = db.session.execute(
-            db.select(Guess).where(
-                Guess.game_id == game_id, Guess.kind == KIND_GUESS
-            ).order_by(Guess.created_at)
-        ).scalars().all()
-        prior = [{"content": g.content, "response_code": g.response_code} for g in prior_guesses]
+        if _contains_literal_subject(challenge.subject, content):
+            rc, raw = WIN, '{"response_code": 4, "source": "literal_subject_match"}'
+        else:
+            prior_guesses = db.session.execute(
+                db.select(Guess).where(
+                    Guess.game_id == game_id, Guess.kind == KIND_GUESS
+                ).order_by(Guess.created_at)
+            ).scalars().all()
+            prior = [{"content": g.content, "response_code": g.response_code} for g in prior_guesses]
 
-        rc, raw = judge_guess(challenge.subject, content, prior)
+            rc, raw = judge_guess(challenge.subject, content, prior)
 
         if rc == WIN and game.completed_at is None:
             game.completed_at = datetime.now(timezone.utc)
@@ -166,6 +170,22 @@ def _clean_guess_content(content: str) -> str:
     content = re.sub(r"\s+", " ", str(content)).strip()
     content = re.sub(r"([?!.,]){2,}", r"\1", content)
     return content
+
+
+def _contains_literal_subject(subject: str, content: str) -> bool:
+    normalized_subject = _normalize_literal_match_text(subject)
+    if not normalized_subject:
+        return False
+
+    normalized_content = _normalize_literal_match_text(content)
+    pattern = rf"(?<![^\W_]){re.escape(normalized_subject)}(?![^\W_])"
+    return re.search(pattern, normalized_content) is not None
+
+
+def _normalize_literal_match_text(value: str) -> str:
+    value = unicodedata.normalize("NFKC", str(value)).casefold()
+    value = "".join(ch if ch.isalnum() else " " for ch in value)
+    return re.sub(r"\s+", " ", value).strip()
 
 
 def _serialize(g: Guess) -> dict:

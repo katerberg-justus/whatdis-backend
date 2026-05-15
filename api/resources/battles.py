@@ -9,9 +9,11 @@ from api.models.battle_guess import BattleGuess
 from api.models.challenge import Challenge
 from api.models.challenge_pack import ChallengePack
 from api.models.user import User
-from api.common.response_codes import VALID_CODES, WIN
+from api.common.challenge_enums import DIFFICULTY_LABEL
+from api.common.response_codes import WIN
 from api.common.energy import consume_energy
 from api.common.achievements import check_after_battle_guess
+from api.services.ai import judge_guess
 
 
 def _get_battle_or_404(battle_id: str) -> Battle:
@@ -182,30 +184,33 @@ class BattleGuessListResource(Resource):
             return {"error": "Not your turn"}, 403
 
         data = request.get_json(silent=True) or {}
-        if not data.get("content"):
+        content = (data.get("content") or "").strip()
+        if not content:
             return {"error": "content required"}, 400
-        if data.get("response_code") is None:
-            return {"error": "response_code required"}, 400
 
-        rc = data["response_code"]
-        if not isinstance(rc, int) or rc not in VALID_CODES:
-            return {"error": f"response_code must be one of {sorted(VALID_CODES)}"}, 400
+        challenge = db.session.get(Challenge, battle.challenge_id)
+        if challenge is None:
+            return {"error": "Challenge not found"}, 404
 
         user = db.session.get(User, uid)
         allowed, energy_remaining = consume_energy(user, request.remote_addr)
         if not allowed:
             return {"error": "No energy remaining. Come back tomorrow."}, 429
 
-        next_turn = db.session.execute(
-            db.select(func.count()).select_from(BattleGuess).where(BattleGuess.battle_id == battle_id)
-        ).scalar_one()
+        prior_guesses = battle.guesses.order_by(BattleGuess.turn_number).all()
+        prior = [{"content": g.content, "response_code": g.response_code} for g in prior_guesses]
+
+        rc, raw = judge_guess(challenge.subject, content, prior)
+
+        next_turn = len(prior_guesses)
 
         guess = BattleGuess(
             battle_id=battle_id,
             user_id=uid,
-            content=data["content"],
+            content=content,
             response_code=rc,
             turn_number=next_turn + 1,
+            raw_response=raw,
         )
         db.session.add(guess)
 
@@ -223,14 +228,42 @@ class BattleGuessListResource(Resource):
 
 def _serialize(battle: Battle, viewer_id: str, include_guesses: bool = False) -> dict:
     status_label = {PENDING: "pending", ACTIVE: "active", FINISHED: "finished"}
+    challenge = db.session.get(Challenge, battle.challenge_id)
+    pack = db.session.get(ChallengePack, challenge.pack_id) if challenge else None
+    guess_count = db.session.execute(
+        db.select(func.count(BattleGuess.id)).where(BattleGuess.battle_id == battle.id)
+    ).scalar_one()
+    player1 = {"id": battle.player1.id, "name": battle.player1.name, "username": battle.player1.name}
+    player2 = {"id": battle.player2.id, "name": battle.player2.name, "username": battle.player2.name}
+    pair_filter = or_(
+        (Battle.player1_id == battle.player1_id) & (Battle.player2_id == battle.player2_id),
+        (Battle.player1_id == battle.player2_id) & (Battle.player2_id == battle.player1_id),
+    )
+    head_to_head = dict(db.session.execute(
+        db.select(Battle.winner_id, func.count())
+        .where(pair_filter, Battle.status == FINISHED, Battle.winner_id.is_not(None))
+        .group_by(Battle.winner_id)
+    ).all())
     data = {
         "id": battle.id,
         "challenge_id": battle.challenge_id,
-        "player1": {"id": battle.player1.id, "name": battle.player1.name},
-        "player2": {"id": battle.player2.id, "name": battle.player2.name},
+        "player1": player1,
+        "player2": player2,
         "status": status_label[battle.status],
         "current_turn_id": battle.current_turn_id,
         "winner_id": battle.winner_id,
+        "completed_at": utc_isoformat(battle.updated_at) if battle.status == FINISHED else None,
+        "guess_count": guess_count,
+        "challenge": {
+            "id": challenge.id,
+            "subject": challenge.subject,
+            "sticker": challenge.sticker,
+        } if challenge and battle.status == FINISHED else None,
+        "challenge_pack": {"id": pack.id, "name": pack.name} if pack else None,
+        "pack": {"id": pack.id, "name": pack.name} if pack else None,
+        "difficulty": DIFFICULTY_LABEL.get(challenge.difficulty, challenge.difficulty) if challenge else None,
+        "player1_score": head_to_head.get(battle.player1_id, 0),
+        "player2_score": head_to_head.get(battle.player2_id, 0),
         "created_at": utc_isoformat(battle.created_at),
         "updated_at": utc_isoformat(battle.updated_at),
     }

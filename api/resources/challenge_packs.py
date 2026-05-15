@@ -8,7 +8,9 @@ from api.common.base_model import utc_isoformat
 from api.models.challenge_pack import ChallengePack
 from api.models.challenge import Challenge
 from api.models.game import Game
+from api.models.battle import Battle, FINISHED
 from api.models.user_pack_access import UserPackAccess
+from sqlalchemy import or_
 from api.common.challenge_enums import (
     VALID_PACK_DIFFICULTIES, VALID_DIFFICULTIES, DIFFICULTY_LABEL,
 )
@@ -109,7 +111,7 @@ def _cached_challenges(pack_id: str) -> list:
 
 
 def _completed_ids_for_pack(pack_id: str, user_id: str) -> set:
-    rows = db.session.execute(
+    game_rows = db.session.execute(
         db.select(Game.challenge_id)
         .join(Challenge, Challenge.id == Game.challenge_id)
         .where(
@@ -119,7 +121,17 @@ def _completed_ids_for_pack(pack_id: str, user_id: str) -> set:
             Game.completed_at.is_not(None),
         )
     ).scalars().all()
-    return set(rows)
+    battle_rows = db.session.execute(
+        db.select(Battle.challenge_id)
+        .join(Challenge, Challenge.id == Battle.challenge_id)
+        .where(
+            Challenge.pack_id == pack_id,
+            *_public_challenge_filters(),
+            Battle.status == FINISHED,
+            or_(Battle.player1_id == user_id, Battle.player2_id == user_id),
+        )
+    ).scalars().all()
+    return set(game_rows) | set(battle_rows)
 
 
 
@@ -182,9 +194,9 @@ class ChallengePackListResource(Resource):
 
         pack_ids = [p.id for p in packs]
 
-        # Completed challenges per pack for this user — 1 query
-        completed_counts = dict(db.session.execute(
-            db.select(Challenge.pack_id, func.count(func.distinct(Game.challenge_id)))
+        # Completed challenges per pack for this user — Games + finished Battles
+        game_pairs = db.session.execute(
+            db.select(Challenge.pack_id, Challenge.id)
             .join(Game, Game.challenge_id == Challenge.id)
             .where(
                 Challenge.pack_id.in_(pack_ids),
@@ -192,8 +204,21 @@ class ChallengePackListResource(Resource):
                 Game.user_id == uid,
                 Game.completed_at.isnot(None),
             )
-            .group_by(Challenge.pack_id)
-        ).all())
+        ).all()
+        battle_pairs = db.session.execute(
+            db.select(Challenge.pack_id, Challenge.id)
+            .join(Battle, Battle.challenge_id == Challenge.id)
+            .where(
+                Challenge.pack_id.in_(pack_ids),
+                *_public_challenge_filters(),
+                Battle.status == FINISHED,
+                or_(Battle.player1_id == uid, Battle.player2_id == uid),
+            )
+        ).all()
+        completed_pairs = set(game_pairs) | set(battle_pairs)
+        completed_counts: dict = {}
+        for pack_id_, _challenge_id in completed_pairs:
+            completed_counts[pack_id_] = completed_counts.get(pack_id_, 0) + 1
 
         # Packs the user has explicit access to — 1 query
         granted_pack_ids = {
