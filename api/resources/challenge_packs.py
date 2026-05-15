@@ -54,12 +54,14 @@ def _has_access(pack: ChallengePack, user_id: str) -> bool:
         )
     ).scalar_one_or_none() is not None:
         return True
-    if pack.subscription_access is not False:
-        from api.resources.subscriptions import _active_subscription
-        from api.common.subscription_plans import STATUS_ACTIVE, STATUS_CANCELLED
-        sub = _active_subscription(user_id)
-        return sub is not None and sub.status in (STATUS_ACTIVE, STATUS_CANCELLED)
-    return False
+    if pack.is_exclusive:
+        return False
+    if not pack.subscription_access:
+        return True
+    from api.resources.subscriptions import _active_subscription
+    from api.common.subscription_plans import STATUS_ACTIVE, STATUS_CANCELLED
+    sub = _active_subscription(user_id)
+    return sub is not None and sub.status in (STATUS_ACTIVE, STATUS_CANCELLED)
 
 
 def _require_access(pack: ChallengePack, user_id: str):
@@ -133,6 +135,7 @@ def _serialize_pack(
         "difficulty": DIFFICULTY_LABEL.get(p.difficulty, p.difficulty),
         "is_active": p.is_active,
         "subscription_access": p.subscription_access,
+        "is_exclusive": p.is_exclusive,
         "total_count": total_count if total_count is not None else 0,
         "completed_count": completed_count if completed_count is not None else 0,
         "created_at": utc_isoformat(p.created_at),
@@ -205,7 +208,12 @@ class ChallengePackListResource(Resource):
 
         result = []
         for p in packs:
-            has_access = p.id in granted_pack_ids or (is_subscribed and p.subscription_access is not False)
+            if p.is_exclusive:
+                has_access = p.id in granted_pack_ids
+            elif not p.subscription_access:
+                has_access = True
+            else:
+                has_access = p.id in granted_pack_ids or is_subscribed
             result.append({
                 **_serialize_pack(
                     p,

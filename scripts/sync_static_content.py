@@ -82,6 +82,7 @@ def _sync_packs(payload: dict, prune: bool) -> tuple[int, int, int, set[str]]:
                 difficulty=pack_difficulty,
                 is_active=pack_data.get("is_active", True),
                 subscription_access=pack_data.get("subscription_access", True),
+                is_exclusive=pack_data.get("is_exclusive", False),
             )
             db.session.add(pack)
             db.session.flush()
@@ -91,6 +92,7 @@ def _sync_packs(payload: dict, prune: bool) -> tuple[int, int, int, set[str]]:
         pack.difficulty = pack_difficulty
         pack.is_active = pack_data.get("is_active", True)
         pack.subscription_access = pack_data.get("subscription_access", True)
+        pack.is_exclusive = pack_data.get("is_exclusive", False)
         touched_pack_ids.add(pack.id)
         pack_count += 1
 

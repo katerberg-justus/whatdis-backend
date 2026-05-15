@@ -13,6 +13,7 @@ class ChallengePack(BaseModel):
     difficulty = db.Column(TINYINT(unsigned=True), nullable=False)
     is_active = db.Column(Boolean, nullable=False, default=True)
     subscription_access = db.Column(Boolean, nullable=False, default=True, server_default="1")
+    is_exclusive = db.Column(Boolean, nullable=False, default=False, server_default="0")
 
     challenges = db.relationship(
         "Challenge", back_populates="pack",
