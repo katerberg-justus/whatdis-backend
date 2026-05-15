@@ -6,15 +6,15 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from api import db, limiter
 from api.common.base_model import utc_isoformat
 from api.models.game import Game
-from api.models.guess import Guess
+from api.models.guess import Guess, KIND_GUESS, KIND_HINT
 from api.models.challenge import Challenge
 from api.models.user import User
-from api.common.energy import consume_energy
+from api.common.energy import consume_energy, HINT_ENERGY_COST
 from api.common.response_codes import WIN
 from api.common.achievements import check_after_guess
 from api.resources.subscriptions import _active_subscription
 from api.common.subscription_plans import STATUS_ACTIVE, STATUS_CANCELLED
-from api.services.ai import judge_guess
+from api.services.ai import judge_guess, give_hint
 
 MIN_GUESS_LENGTH = 2
 MAX_GUESS_LENGTH = 80
@@ -55,11 +55,13 @@ class GuessListResource(Resource):
             return {"error": "No energy remaining. Come back tomorrow."}, 429
 
         prior_guesses = db.session.execute(
-            db.select(Guess).where(Guess.game_id == game_id).order_by(Guess.created_at)
+            db.select(Guess).where(
+                Guess.game_id == game_id, Guess.kind == KIND_GUESS
+            ).order_by(Guess.created_at)
         ).scalars().all()
         prior = [{"content": g.content, "response_code": g.response_code} for g in prior_guesses]
 
-        rc = judge_guess(challenge.subject, content, prior)
+        rc, raw = judge_guess(challenge.subject, content, prior)
 
         if rc == WIN and game.completed_at is None:
             game.completed_at = datetime.now(timezone.utc)
@@ -69,6 +71,8 @@ class GuessListResource(Resource):
             user_id=uid,
             content=content,
             response_code=rc,
+            kind=KIND_GUESS,
+            raw_response=raw,
         )
         db.session.add(guess)
         db.session.commit()
@@ -78,6 +82,52 @@ class GuessListResource(Resource):
             db.session.commit()
 
         return {**_serialize(guess), "energy_remaining": energy_remaining}, 201
+
+
+class HintListResource(Resource):
+    decorators = [jwt_required(), limiter.limit("30 per minute")]
+
+    def post(self, game_id):
+        uid = get_jwt_identity()
+        game = db.get_or_404(Game, game_id)
+        _require_owner(game)
+
+        challenge = db.session.get(Challenge, game.challenge_id)
+        if challenge is None:
+            return {"error": "Challenge not found"}, 404
+
+        user = db.session.get(User, uid)
+        sub = _active_subscription(uid)
+        is_subscribed = sub is not None and sub.status in (STATUS_ACTIVE, STATUS_CANCELLED)
+        allowed, energy_remaining = consume_energy(
+            user, request.remote_addr, is_subscribed=is_subscribed, cost=HINT_ENERGY_COST
+        )
+        if not allowed:
+            return {"error": f"Not enough energy. Hints cost {HINT_ENERGY_COST}."}, 429
+
+        prior_guesses = db.session.execute(
+            db.select(Guess).where(
+                Guess.game_id == game_id, Guess.kind == KIND_GUESS
+            ).order_by(Guess.created_at)
+        ).scalars().all()
+        prior = [{"content": g.content, "response_code": g.response_code} for g in prior_guesses]
+
+        hint_text, raw = give_hint(challenge.subject, prior, language=getattr(user, "language", None))
+        if not hint_text:
+            return {"error": "Failed to generate hint."}, 502
+
+        hint = Guess(
+            game_id=game_id,
+            user_id=uid,
+            content=hint_text,
+            response_code=None,
+            kind=KIND_HINT,
+            raw_response=raw,
+        )
+        db.session.add(hint)
+        db.session.commit()
+
+        return {**_serialize(hint), "energy_remaining": energy_remaining}, 201
 
 
 class GuessResource(Resource):
@@ -125,8 +175,9 @@ def _serialize(g: Guess) -> dict:
         "game_id": g.game_id,
         "user_id": g.user_id,
         "content": g.content,
+        "kind": g.kind,
         "response_code": g.response_code,
-        "response": rc_labels.get(g.response_code, str(g.response_code)),
+        "response": rc_labels.get(g.response_code) if g.response_code is not None else None,
         "created_at": utc_isoformat(g.created_at),
         "updated_at": utc_isoformat(g.updated_at),
     }

@@ -1,7 +1,10 @@
 from sqlalchemy import Text, ForeignKey
-from sqlalchemy.dialects.mysql import CHAR, TINYINT
+from sqlalchemy.dialects.mysql import CHAR, TINYINT, VARCHAR
 from api import db
 from api.common.base_model import BaseModel
+
+KIND_GUESS = "guess"
+KIND_HINT = "hint"
 
 
 class Guess(BaseModel):
@@ -21,7 +24,10 @@ class Guess(BaseModel):
     )
     content = db.Column(Text, nullable=False)
     # 0=no, 1=yes, 2=indecisive, 3=refusal, 4=win, 5=possible  (see api.common.response_codes)
-    response_code = db.Column(TINYINT(unsigned=True), nullable=False)
+    # Nullable: hints have no response_code.
+    response_code = db.Column(TINYINT(unsigned=True), nullable=True)
+    kind = db.Column(VARCHAR(16), nullable=False, server_default=KIND_GUESS, default=KIND_GUESS)
+    raw_response = db.Column(Text, nullable=True)
 
     game = db.relationship("Game", back_populates="guesses")
     user = db.relationship("User", back_populates="guesses")

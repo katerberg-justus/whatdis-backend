@@ -106,6 +106,7 @@ def _serialize(g: Game) -> dict:
     pack = db.session.get(ChallengePack, challenge.pack_id) if challenge else None
     next_challenge = _next_challenge(challenge)
     user = db.session.get(User, g.user_id)
+    is_daily = _is_daily_game(g, challenge)
 
     return {
         "id": g.id,
@@ -114,7 +115,11 @@ def _serialize(g: Game) -> dict:
         "completed_at": utc_isoformat(g.completed_at),
         "guess_count": guess_count,
         "duration_seconds": duration_seconds,
-        "challenge": _serialize_challenge(challenge, completed=g.completed_at is not None),
+        "challenge": _serialize_challenge(
+            challenge,
+            completed=g.completed_at is not None,
+            is_daily=is_daily,
+        ),
         "pack_id": challenge.pack_id if challenge else None,
         "pack_name": pack.name if pack else None,
         "position": _ordinal_position(challenge),
@@ -126,15 +131,31 @@ def _serialize(g: Game) -> dict:
     }
 
 
-def _serialize_challenge(challenge: Challenge | None, completed: bool = False) -> dict | None:
+def _serialize_challenge(
+    challenge: Challenge | None,
+    completed: bool = False,
+    is_daily: bool = False,
+) -> dict | None:
     if challenge is None:
         return None
 
     return {
         "id": challenge.id,
+        "is_daily": is_daily,
         "subject": challenge.subject if completed else None,
         "sticker": challenge.sticker if completed else None,
     }
+
+
+def _is_daily_game(game: Game, challenge: Challenge | None) -> bool:
+    if challenge is None or game.created_at is None:
+        return False
+    return db.session.execute(
+        db.select(DailyChallenge.id).where(
+            DailyChallenge.challenge_id == challenge.id,
+            DailyChallenge.available_on == game.created_at.date(),
+        )
+    ).scalar_one_or_none() is not None
 
 
 def _next_challenge(challenge: Challenge | None) -> Challenge | None:

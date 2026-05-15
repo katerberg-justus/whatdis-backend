@@ -18,6 +18,15 @@ from api.common.subscription_plans import (
     normalize_currency,
 )
 
+SUPPORTED_LANGUAGES = {"en", "es", "fr", "de", "nl", "pt"}
+
+
+def normalize_language(code):
+    if not code:
+        return None
+    lower = str(code).lower().split("-")[0]
+    return lower if lower in SUPPORTED_LANGUAGES else None
+
 
 def _current_user() -> User:
     user = db.session.get(User, get_jwt_identity())
@@ -53,6 +62,11 @@ class MeResource(Resource):
             if currency is None:
                 return {"error": f"Invalid currency. Choose from: {', '.join(sorted(SUPPORTED_CURRENCIES))}"}, 400
             user.currency = currency
+        if "language" in data:
+            language = normalize_language(data["language"])
+            if language is None:
+                return {"error": f"Invalid language. Choose from: {', '.join(sorted(SUPPORTED_LANGUAGES))}"}, 400
+            user.language = language
         try:
             db.session.commit()
         except IntegrityError:
@@ -194,6 +208,7 @@ def _serialize_user(u: User) -> dict:
         "name": u.name,
         "email": u.email,
         "currency": u.currency or DEFAULT_CURRENCY,
+        "language": u.language,
         "is_guest": u.is_guest,
         "is_subscribed": is_subscribed,
         "subscription": _serialize_sub(sub) if sub else None,

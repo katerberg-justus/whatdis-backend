@@ -67,9 +67,15 @@ class GuestLoginResource(Resource):
     decorators = [limiter.limit("20 per minute")]
 
     def post(self):
+        from api.resources.me import normalize_language
+        data = request.get_json(silent=True) or {}
+        language = normalize_language(data.get("language")) or normalize_language(
+            (request.headers.get("Accept-Language") or "").split(",")[0]
+        )
         guest = User(
             name=f"guest_{secrets.token_hex(8)}",
             is_guest=True,
+            language=language,
         )
         db.session.add(guest)
         db.session.commit()

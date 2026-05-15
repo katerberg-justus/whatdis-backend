@@ -14,6 +14,7 @@ class User(BaseModel):
     password_hash = db.Column(String(255), nullable=True)
     is_guest = db.Column(Boolean, nullable=False, default=True)
     currency = db.Column(String(3), nullable=False, default=DEFAULT_CURRENCY, server_default=DEFAULT_CURRENCY)
+    language = db.Column(String(8), nullable=True)
     subscription_expires_at  = db.Column(DateTime, nullable=True)
     # Subscriber carry-over energy — null for non-subscribers
     energy_balance           = db.Column(Integer, nullable=True)

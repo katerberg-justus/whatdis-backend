@@ -1,5 +1,5 @@
 from datetime import datetime, timezone, timedelta, date
-from sqlalchemy import func, cast, Date as SADate
+from sqlalchemy import func, cast, case, Date as SADate
 from api import db, cache
 from api.common.limits import (
     ENERGY_DAILY_ANONYMOUS,
@@ -8,6 +8,8 @@ from api.common.limits import (
     ENERGY_DAILY_SUBSCRIBER,
     ENERGY_MAX_SUBSCRIBER,
 )
+
+HINT_ENERGY_COST = 5
 
 
 def _seconds_until_midnight() -> int:
@@ -25,11 +27,13 @@ def _user_key(user_id: str) -> str:
 
 
 def _count_todays_guesses(user_id: str) -> int:
-    from api.models.guess import Guess
+    """Energy used today (weighted: hint=5, guess=1)."""
+    from api.models.guess import Guess, KIND_HINT
     from api.models.battle_guess import BattleGuess
     today = date.today()
+    guess_weight = case((Guess.kind == KIND_HINT, HINT_ENERGY_COST), else_=1)
     solo = db.session.execute(
-        db.select(func.count()).select_from(Guess).where(
+        db.select(func.coalesce(func.sum(guess_weight), 0)).where(
             Guess.user_id == user_id,
             cast(Guess.created_at, SADate) == today,
         )
@@ -40,7 +44,7 @@ def _count_todays_guesses(user_id: str) -> int:
             cast(BattleGuess.created_at, SADate) == today,
         )
     ).scalar_one()
-    return solo + battle
+    return int(solo) + int(battle)
 
 
 def _cached_user_energy(user_id: str) -> int | None:
@@ -83,54 +87,55 @@ def award_claim_bonus(user) -> int:
     return remaining
 
 
-def consume_energy(user, ip: str | None = None, is_subscribed: bool | None = None) -> tuple[bool, int]:
+def consume_energy(user, ip: str | None = None, is_subscribed: bool | None = None, cost: int = 1) -> tuple[bool, int]:
     """
-    Attempt to consume 1 energy.
+    Attempt to consume `cost` energy.
     Returns (allowed, energy_remaining_after_consumption).
     Must be called before the guess is committed.
     """
+    if cost < 1:
+        raise ValueError("cost must be >= 1")
     if user is None:
-        return _consume_anon(ip)
+        return _consume_anon(ip, cost)
     subscribed = is_subscribed if is_subscribed is not None else user.is_subscribed
     if subscribed:
-        return _consume_subscriber(user)
-    return _consume_user(user)
+        return _consume_subscriber(user, cost)
+    return _consume_user(user, cost)
 
 
 # ── Per-tier implementations ──────────────────────────────────────────────────
 
-def _consume_anon(ip: str) -> tuple[bool, int]:
+def _consume_anon(ip: str, cost: int) -> tuple[bool, int]:
     key = _anon_key(ip)
     remaining = cache.get(key)
     if remaining is None:
         remaining = ENERGY_DAILY_ANONYMOUS
-    if remaining <= 0:
-        return False, 0
-    remaining -= 1
+    if remaining < cost:
+        return False, remaining
+    remaining -= cost
     cache.set(key, remaining, timeout=_seconds_until_midnight())
     return True, remaining
 
 
-def _consume_user(user) -> tuple[bool, int]:
+def _consume_user(user, cost: int) -> tuple[bool, int]:
     cached = _cached_user_energy(user.id)
     if cached is not None:
         remaining = cached
     else:
         daily = ENERGY_DAILY_GUEST if user.is_guest else ENERGY_DAILY_USER
         remaining = max(0, daily - _count_todays_guesses(user.id))
-    if remaining <= 0:
-        return False, 0
-    # Write the post-consumption value — guess is committed by the caller
-    _set_user_energy_cache(user.id, remaining - 1)
-    return True, remaining - 1
+    if remaining < cost:
+        return False, remaining
+    _set_user_energy_cache(user.id, remaining - cost)
+    return True, remaining - cost
 
 
-def _consume_subscriber(user) -> tuple[bool, int]:
+def _consume_subscriber(user, cost: int) -> tuple[bool, int]:
     _maybe_replenish(user)
     balance = user.energy_balance or 0
-    if balance <= 0:
-        return False, 0
-    user.energy_balance = balance - 1
+    if balance < cost:
+        return False, balance
+    user.energy_balance = balance - cost
     # caller commits the session together with the guess
     return True, user.energy_balance
 

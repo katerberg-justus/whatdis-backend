@@ -20,7 +20,7 @@ def register_resources(api):
         FriendResource,
     )
     from api.resources.games import GameListResource, GameResource
-    from api.resources.guesses import GuessListResource, GuessResource
+    from api.resources.guesses import GuessListResource, GuessResource, HintListResource
     from api.resources.battles import (
         BattleListResource,
         BattleResource,
@@ -67,6 +67,7 @@ def register_resources(api):
     # Guesses (nested under game)
     api.add_resource(GuessListResource, "/games/<string:game_id>/guesses")
     api.add_resource(GuessResource,     "/games/<string:game_id>/guesses/<string:guess_id>")
+    api.add_resource(HintListResource,  "/games/<string:game_id>/hints")
 
     # Battles
     api.add_resource(BattleListResource,      "/battles")

@@ -44,6 +44,12 @@ Rules:
 Secret: "{subject}"
 """
 
+_HINT_SYSTEM = (
+    "You are a 20-questions host. Give ONE short sentence hinting at the secret "
+    "without naming it or any obvious synonym. Be subtle; build on prior Q&A.{lang_clause} "
+    "Secret: \"{subject}\"."
+)
+
 
 def _get_client() -> OpenAI:
     global _client
@@ -52,8 +58,8 @@ def _get_client() -> OpenAI:
     return _client
 
 
-def judge_guess(subject: str, content: str, prior_guesses: list[dict]) -> int:
-    """Call OpenAI and return a response_code integer."""
+def judge_guess(subject: str, content: str, prior_guesses: list[dict]) -> tuple[int, str]:
+    """Call OpenAI and return (response_code, raw_model_content)."""
     messages = [{"role": "system", "content": _SYSTEM.format(subject=subject)}]
     for g in prior_guesses[-3:]:
         messages.append({"role": "user", "content": g["content"]})
@@ -76,12 +82,41 @@ def judge_guess(subject: str, content: str, prior_guesses: list[dict]) -> int:
     )
 
     message = response.choices[0].message
+    raw = message.content or ""
     if getattr(message, "refusal", None):
-        return REFUSAL
+        return REFUSAL, message.refusal or raw
 
     try:
-        response_code = json.loads(message.content)["response_code"]
+        response_code = json.loads(raw)["response_code"]
     except (TypeError, KeyError, json.JSONDecodeError):
-        return NO
+        return NO, raw
 
-    return response_code if response_code in _VALID_RESPONSE_CODES else NO
+    return (response_code if response_code in _VALID_RESPONSE_CODES else NO), raw
+
+
+def give_hint(subject: str, prior_guesses: list[dict], language: str | None = None) -> tuple[str, str]:
+    """Generate a one-sentence hint. Returns (hint_text, raw_model_content)."""
+    lang_clause = f" Respond in language code '{language}'." if language else ""
+    messages = [{"role": "system", "content": _HINT_SYSTEM.format(subject=subject, lang_clause=lang_clause)}]
+    for g in prior_guesses[-20:]:
+        messages.append({"role": "user", "content": g["content"]})
+        messages.append(
+            {
+                "role": "assistant",
+                "content": json.dumps({"response_code": g["response_code"]}),
+            }
+        )
+    messages.append({"role": "user", "content": "Give a hint."})
+
+    response = _get_client().chat.completions.create(
+        model=os.environ.get("OPENAI_HINT_MODEL", "gpt-5.2"),
+        messages=messages,
+        max_completion_tokens=40,
+        temperature=0.7,
+    )
+
+    message = response.choices[0].message
+    raw = message.content or ""
+    if getattr(message, "refusal", None):
+        return "", message.refusal or raw
+    return raw.strip(), raw
