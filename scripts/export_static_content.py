@@ -64,6 +64,7 @@ def _pack_payload(pack: ChallengePack) -> dict:
         "is_active": bool(pack.is_active),
         "subscription_access": bool(pack.subscription_access),
         "is_exclusive": bool(pack.is_exclusive),
+        "is_battle": bool(pack.is_battle),
         "challenges": [_challenge_payload(challenge) for challenge in challenges],
     }
 

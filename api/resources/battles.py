@@ -6,6 +6,8 @@ from api import db, limiter
 from api.common.base_model import utc_isoformat
 from api.models.battle import Battle, PENDING, ACTIVE, FINISHED
 from api.models.battle_guess import BattleGuess
+from api.models.challenge import Challenge
+from api.models.challenge_pack import ChallengePack
 from api.models.user import User
 from api.common.response_codes import VALID_CODES, WIN
 from api.common.energy import consume_energy
@@ -23,6 +25,23 @@ def _require_participant(battle: Battle, uid: str):
 
 def _other_player(battle: Battle, uid: str) -> str:
     return battle.player2_id if battle.player1_id == uid else battle.player1_id
+
+
+def _require_battle_challenge(challenge_id: str, uid: str) -> Challenge:
+    challenge = db.session.get(Challenge, challenge_id)
+    if challenge is None or not challenge.is_active or challenge.sticker is None:
+        abort(404, error="Challenge not found")
+
+    pack = db.session.get(ChallengePack, challenge.pack_id)
+    if pack is None:
+        abort(404, error="Challenge not found")
+    if not pack.is_battle:
+        abort(400, error="Only battle challenges can be used for battles")
+
+    from api.resources.challenge_packs import _has_access
+    if not _has_access(pack, uid):
+        abort(403, error="Pack access required")
+    return challenge
 
 
 class BattleListResource(Resource):
@@ -45,6 +64,8 @@ class BattleListResource(Resource):
             return {"error": f"Missing fields: {', '.join(missing)}"}, 400
         if data["opponent_id"] == uid:
             return {"error": "Cannot battle yourself"}, 400
+
+        _require_battle_challenge(data["challenge_id"], uid)
 
         opponent = db.session.get(User, data["opponent_id"])
         if opponent is None:
@@ -129,6 +150,8 @@ class BattleAcceptResource(Resource):
             abort(403)
         if battle.status != PENDING:
             return {"error": "Battle is not pending"}, 409
+
+        _require_battle_challenge(battle.challenge_id, uid)
 
         battle.status = ACTIVE
         battle.current_turn_id = battle.player2_id

@@ -14,7 +14,7 @@ from api.common.challenge_enums import (
 )
 
 _CACHE_TTL = 3600  # 1 hour
-_PACKS_CACHE_KEY = "challenge_packs:list:public-stickers:v1"
+_PACKS_CACHE_KEY = "challenge_packs:list:public-stickers:v2"
 
 
 def _pack_challenges_key(pack_id: str) -> str:
@@ -23,9 +23,11 @@ def _pack_challenges_key(pack_id: str) -> str:
 
 def _bust_pack_cache(pack_id: str | None = None) -> None:
     cache.delete(_PACKS_CACHE_KEY)
+    cache.delete("challenge_packs:list:public-stickers:v1")
     cache.delete("challenge_packs:list")
     if pack_id:
         cache.delete(_pack_challenges_key(pack_id))
+        cache.delete(f"challenge_packs:challenges:public-stickers:v1:{pack_id}")
         cache.delete(f"challenge_packs:challenges:{pack_id}")
 
 
@@ -136,6 +138,7 @@ def _serialize_pack(
         "is_active": p.is_active,
         "subscription_access": p.subscription_access,
         "is_exclusive": p.is_exclusive,
+        "is_battle": p.is_battle,
         "total_count": total_count if total_count is not None else 0,
         "completed_count": completed_count if completed_count is not None else 0,
         "created_at": utc_isoformat(p.created_at),
@@ -237,6 +240,7 @@ class ChallengePackListResource(Resource):
             description=data.get("description"),
             difficulty=data["difficulty"],
             is_active=data.get("is_active", True),
+            is_battle=bool(data.get("is_battle", False)),
         )
         db.session.add(pack)
         db.session.commit()
@@ -278,6 +282,8 @@ class ChallengePackResource(Resource):
             pack.difficulty = data["difficulty"]
         if "is_active" in data:
             pack.is_active = bool(data["is_active"])
+        if "is_battle" in data:
+            pack.is_battle = bool(data["is_battle"])
         db.session.commit()
         _bust_pack_cache(pack_id)
         return _serialize_pack(pack), 200

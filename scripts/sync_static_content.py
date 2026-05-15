@@ -83,6 +83,7 @@ def _sync_packs(payload: dict, prune: bool) -> tuple[int, int, int, set[str]]:
                 is_active=pack_data.get("is_active", True),
                 subscription_access=pack_data.get("subscription_access", True),
                 is_exclusive=pack_data.get("is_exclusive", False),
+                is_battle=pack_data.get("is_battle", False),
             )
             db.session.add(pack)
             db.session.flush()
@@ -93,6 +94,7 @@ def _sync_packs(payload: dict, prune: bool) -> tuple[int, int, int, set[str]]:
         pack.is_active = pack_data.get("is_active", True)
         pack.subscription_access = pack_data.get("subscription_access", True)
         pack.is_exclusive = pack_data.get("is_exclusive", False)
+        pack.is_battle = pack_data.get("is_battle", False)
         touched_pack_ids.add(pack.id)
         pack_count += 1
 
@@ -202,6 +204,7 @@ def _sync_daily_challenges(payload: dict) -> int:
 def _clear_static_cache(touched_pack_ids: set[str]) -> None:
     cache.delete("challenge_packs:list")
     cache.delete("challenge_packs:list:public-stickers:v1")
+    cache.delete("challenge_packs:list:public-stickers:v2")
     for pack_id in touched_pack_ids:
         cache.delete(f"challenge_packs:challenges:{pack_id}")
         cache.delete(f"challenge_packs:challenges:public-stickers:v1:{pack_id}")

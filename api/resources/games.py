@@ -44,12 +44,17 @@ class GameListResource(Resource):
             )
         ).scalar_one_or_none() is not None
 
+        pack = db.session.get(ChallengePack, challenge.pack_id)
+        if pack is None:
+            return {"error": "Challenge not found"}, 404
+        if pack.is_battle:
+            return {"error": "Battle challenges cannot be started as ordinary games"}, 400
+
         if not is_daily:
             from api.resources.challenge_packs import _has_access
             if not challenge.is_active or challenge.sticker is None:
                 return {"error": "Challenge not found"}, 404
-            pack = db.session.get(ChallengePack, challenge.pack_id)
-            if pack is None or not _has_access(pack, uid):
+            if not _has_access(pack, uid):
                 return {"error": "Pack access required"}, 403
 
         existing = db.session.execute(

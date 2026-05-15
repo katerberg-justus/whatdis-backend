@@ -7,125 +7,147 @@
       "difficulty": 1,
       "is_active": true,
       "subscription_access": true,
+      "is_exclusive": false,
+      "is_battle": false,
       "challenges": [
         {
           "subject": "Nikola Tesla",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 0
         },
         {
           "subject": "Gregor Mendel",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 1
         },
         {
           "subject": "Thomas Edison",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 2
         },
         {
           "subject": "Stephen Hawking",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 3
         },
         {
           "subject": "Albert Einstein",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 4
         },
         {
           "subject": "James Watson",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 5
         },
         {
           "subject": "Alexander Graham Bell",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 6
         },
         {
           "subject": "Richard Feynman",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 7
         },
         {
           "subject": "Isaac Newton",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 8
         },
         {
           "subject": "Tim Berners-Lee",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 9
         },
         {
           "subject": "Louis Pasteur",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 10
         },
         {
           "subject": "Niels Bohr",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 11
         },
         {
           "subject": "Charles Darwin",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 12
         },
         {
           "subject": "Alan Turing",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 13
         },
         {
           "subject": "Ada Lovelace",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 14
         },
         {
           "subject": "Marie Curie",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 15
         },
         {
           "subject": "Werner Heisenberg",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 16
         },
         {
           "subject": "Galileo Galilei",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 17
         },
         {
           "subject": "Dmitri Mendeleev",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 18
         },
         {
           "subject": "Rosalind Franklin",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 19
         }
       ]
@@ -136,125 +158,147 @@
       "difficulty": 2,
       "is_active": true,
       "subscription_access": true,
+      "is_exclusive": false,
+      "is_battle": false,
       "challenges": [
         {
           "subject": "Dragon",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 1
         },
         {
           "subject": "Unicorn",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 2
         },
         {
           "subject": "Mermaid",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 3
         },
         {
           "subject": "Vampire",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 4
         },
         {
           "subject": "Werewolf",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 5
         },
         {
           "subject": "Phoenix",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 6
         },
         {
           "subject": "Cyclops",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 7
         },
         {
           "subject": "Troll",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 8
         },
         {
           "subject": "Minotaur",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 9
         },
         {
           "subject": "Centaur",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 10
         },
         {
           "subject": "Griffin",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 11
         },
         {
           "subject": "Sphinx",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 12
         },
         {
           "subject": "Basilisk",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 13
         },
         {
           "subject": "Kraken",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 14
         },
         {
           "subject": "Chimera",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 15
         },
         {
           "subject": "Yeti",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 16
         },
         {
           "subject": "Kelpie",
           "difficulty": 2,
           "is_active": true,
+          "sticker": null,
           "position": 17
         },
         {
           "subject": "Banshee",
           "difficulty": 2,
           "is_active": true,
+          "sticker": null,
           "position": 18
         },
         {
           "subject": "Manticore",
           "difficulty": 2,
           "is_active": true,
+          "sticker": null,
           "position": 19
         },
         {
           "subject": "Selkie",
           "difficulty": 2,
           "is_active": true,
+          "sticker": null,
           "position": 20
         }
       ]
@@ -265,125 +309,147 @@
       "difficulty": 0,
       "is_active": true,
       "subscription_access": true,
+      "is_exclusive": false,
+      "is_battle": false,
       "challenges": [
         {
           "subject": "Doctor",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 1
         },
         {
           "subject": "Teacher",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 2
         },
         {
           "subject": "Firefighter",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 3
         },
         {
           "subject": "Police officer",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 4
         },
         {
           "subject": "Chef",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 5
         },
         {
           "subject": "Farmer",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 6
         },
         {
           "subject": "Pilot",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 7
         },
         {
           "subject": "Dentist",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 8
         },
         {
           "subject": "Architect",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 9
         },
         {
           "subject": "Engineer",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 10
         },
         {
           "subject": "Journalist",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 11
         },
         {
           "subject": "Veterinarian",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 12
         },
         {
           "subject": "Pharmacist",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 13
         },
         {
           "subject": "Mechanic",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 14
         },
         {
           "subject": "Librarian",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 15
         },
         {
           "subject": "Paramedic",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 16
         },
         {
           "subject": "Astronomer",
           "difficulty": 2,
           "is_active": true,
+          "sticker": null,
           "position": 17
         },
         {
           "subject": "Blacksmith",
           "difficulty": 2,
           "is_active": true,
+          "sticker": null,
           "position": 18
         },
         {
           "subject": "Cartographer",
           "difficulty": 2,
           "is_active": true,
+          "sticker": null,
           "position": 19
         },
         {
           "subject": "Actuary",
           "difficulty": 2,
           "is_active": true,
+          "sticker": null,
           "position": 20
         }
       ]
@@ -394,125 +460,147 @@
       "difficulty": 0,
       "is_active": true,
       "subscription_access": true,
+      "is_exclusive": false,
+      "is_battle": false,
       "challenges": [
         {
           "subject": "eye mask",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 0
         },
         {
           "subject": "paperback book",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 1
         },
         {
           "subject": "flip-flops",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 2
         },
         {
           "subject": "sunscreen",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 3
         },
         {
           "subject": "passport",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 4
         },
         {
           "subject": "earplugs",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 5
         },
         {
           "subject": "charging cable",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 6
         },
         {
           "subject": "laundry bag",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 7
         },
         {
           "subject": "umbrella",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 8
         },
         {
           "subject": "toothbrush",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 9
         },
         {
           "subject": "guidebook",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 10
         },
         {
           "subject": "power adapter",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 11
         },
         {
           "subject": "money belt",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 12
         },
         {
           "subject": "sunglasses",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 13
         },
         {
           "subject": "camera",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 14
         },
         {
           "subject": "rolled socks",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 15
         },
         {
           "subject": "packing cubes",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 16
         },
         {
           "subject": "neck pillow",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 17
         },
         {
           "subject": "water bottle",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 18
         },
         {
           "subject": "swimsuit",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 19
         }
       ]
@@ -523,17 +611,21 @@
       "difficulty": 0,
       "is_active": true,
       "subscription_access": true,
+      "is_exclusive": false,
+      "is_battle": false,
       "challenges": [
         {
           "subject": "plant pot",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 0
         },
         {
           "subject": "Michael Jackson",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 1
         }
       ]
@@ -544,89 +636,105 @@
       "difficulty": 0,
       "is_active": false,
       "subscription_access": false,
+      "is_exclusive": false,
+      "is_battle": false,
       "challenges": [
         {
           "subject": "pizza",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 0
         },
         {
           "subject": "beach",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 1
         },
         {
           "subject": "bicycle",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 2
         },
         {
           "subject": "ice cream",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 3
         },
         {
           "subject": "coffee",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 4
         },
         {
           "subject": "airport",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 5
         },
         {
           "subject": "camping",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 6
         },
         {
           "subject": "sushi",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 7
         },
         {
           "subject": "museum",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 8
         },
         {
           "subject": "gardening",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 9
         },
         {
           "subject": "recycling",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 10
         },
         {
           "subject": "library",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 11
         },
         {
           "subject": "cooking",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 12
         },
         {
           "subject": "hiking",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 13
         }
       ]
@@ -637,125 +745,147 @@
       "difficulty": 0,
       "is_active": true,
       "subscription_access": true,
+      "is_exclusive": false,
+      "is_battle": false,
       "challenges": [
         {
           "subject": "Car",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 1
         },
         {
           "subject": "Bicycle",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 2
         },
         {
           "subject": "Bus",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 3
         },
         {
           "subject": "Train",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 4
         },
         {
           "subject": "Airplane",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 5
         },
         {
           "subject": "Boat",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 6
         },
         {
           "subject": "Motorcycle",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 7
         },
         {
           "subject": "Taxi",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 8
         },
         {
           "subject": "Tram",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 9
         },
         {
           "subject": "Helicopter",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 10
         },
         {
           "subject": "Submarine",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 11
         },
         {
           "subject": "Scooter",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 12
         },
         {
           "subject": "Ferry",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 13
         },
         {
           "subject": "Ambulance",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 14
         },
         {
           "subject": "Cable car",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 15
         },
         {
           "subject": "Hot air balloon",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 16
         },
         {
           "subject": "Rickshaw",
           "difficulty": 2,
           "is_active": true,
+          "sticker": null,
           "position": 17
         },
         {
           "subject": "Hovercraft",
           "difficulty": 2,
           "is_active": true,
+          "sticker": null,
           "position": 18
         },
         {
           "subject": "Zamboni",
           "difficulty": 2,
           "is_active": true,
+          "sticker": null,
           "position": 19
         },
         {
           "subject": "Funicular",
           "difficulty": 2,
           "is_active": true,
+          "sticker": null,
           "position": 20
         }
       ]
@@ -766,125 +896,147 @@
       "difficulty": 1,
       "is_active": true,
       "subscription_access": true,
+      "is_exclusive": false,
+      "is_battle": false,
       "challenges": [
         {
           "subject": "Sushi",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 1
         },
         {
           "subject": "Tacos",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 2
         },
         {
           "subject": "Pizza",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 3
         },
         {
           "subject": "Curry",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 4
         },
         {
           "subject": "Paella",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 5
         },
         {
           "subject": "Dim sum",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 6
         },
         {
           "subject": "Ramen",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 7
         },
         {
           "subject": "Falafel",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 8
         },
         {
           "subject": "Bibimbap",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 9
         },
         {
           "subject": "Tagine",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 10
         },
         {
           "subject": "Kimchi",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 11
         },
         {
           "subject": "Pho",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 12
         },
         {
           "subject": "Poutine",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 13
         },
         {
           "subject": "Goulash",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 14
         },
         {
           "subject": "Ceviche",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 15
         },
         {
           "subject": "Baklava",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 16
         },
         {
           "subject": "Haggis",
           "difficulty": 2,
           "is_active": true,
+          "sticker": null,
           "position": 17
         },
         {
           "subject": "Koshari",
           "difficulty": 2,
           "is_active": true,
+          "sticker": null,
           "position": 18
         },
         {
           "subject": "Laksa",
           "difficulty": 2,
           "is_active": true,
+          "sticker": null,
           "position": 19
         },
         {
           "subject": "Injera",
           "difficulty": 2,
           "is_active": true,
+          "sticker": null,
           "position": 20
         }
       ]
@@ -895,125 +1047,147 @@
       "difficulty": 0,
       "is_active": true,
       "subscription_access": true,
+      "is_exclusive": false,
+      "is_battle": false,
       "challenges": [
         {
           "subject": "pinecone",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 0
         },
         {
           "subject": "mushroom",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 1
         },
         {
           "subject": "acorn",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 2
         },
         {
           "subject": "fallen log",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 3
         },
         {
           "subject": "beehive",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 4
         },
         {
           "subject": "treehouse",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 5
         },
         {
           "subject": "axe",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 6
         },
         {
           "subject": "anthill",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 7
         },
         {
           "subject": "hiking boot",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 8
         },
         {
           "subject": "tent",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 9
         },
         {
           "subject": "spider web",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 10
         },
         {
           "subject": "walking stick",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 11
         },
         {
           "subject": "fern",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 12
         },
         {
           "subject": "campfire",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 13
         },
         {
           "subject": "deer antler",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 14
         },
         {
           "subject": "lantern",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 15
         },
         {
           "subject": "moss",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 16
         },
         {
           "subject": "hammock",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 17
         },
         {
           "subject": "bird's nest",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 18
         },
         {
           "subject": "compass",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 19
         }
       ]
@@ -1023,7 +1197,9 @@
       "description": "Cities and towns from around the world",
       "difficulty": 1,
       "is_active": true,
-      "subscription_access": true,
+      "subscription_access": false,
+      "is_exclusive": false,
+      "is_battle": false,
       "challenges": [
         {
           "subject": "Paris",
@@ -1173,125 +1349,147 @@
       "difficulty": 0,
       "is_active": true,
       "subscription_access": true,
+      "is_exclusive": false,
+      "is_battle": false,
       "challenges": [
         {
           "subject": "Painting",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 1
         },
         {
           "subject": "Swimming",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 2
         },
         {
           "subject": "Cycling",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 3
         },
         {
           "subject": "Cooking",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 4
         },
         {
           "subject": "Reading",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 5
         },
         {
           "subject": "Hiking",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 6
         },
         {
           "subject": "Dancing",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 7
         },
         {
           "subject": "Gardening",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 8
         },
         {
           "subject": "Chess",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 9
         },
         {
           "subject": "Knitting",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 10
         },
         {
           "subject": "Surfing",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 11
         },
         {
           "subject": "Photography",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 12
         },
         {
           "subject": "Camping",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 13
         },
         {
           "subject": "Yoga",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 14
         },
         {
           "subject": "Pottery",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 15
         },
         {
           "subject": "Archery",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 16
         },
         {
           "subject": "Birdwatching",
           "difficulty": 2,
           "is_active": true,
+          "sticker": null,
           "position": 17
         },
         {
           "subject": "Geocaching",
           "difficulty": 2,
           "is_active": true,
+          "sticker": null,
           "position": 18
         },
         {
           "subject": "Calligraphy",
           "difficulty": 2,
           "is_active": true,
+          "sticker": null,
           "position": 19
         },
         {
           "subject": "Orienteering",
           "difficulty": 2,
           "is_active": true,
+          "sticker": null,
           "position": 20
         }
       ]
@@ -1302,125 +1500,147 @@
       "difficulty": 2,
       "is_active": true,
       "subscription_access": true,
+      "is_exclusive": false,
+      "is_battle": false,
       "challenges": [
         {
           "subject": "Tyrannosaurus rex",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 1
         },
         {
           "subject": "Triceratops",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 2
         },
         {
           "subject": "Velociraptor",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 3
         },
         {
           "subject": "Stegosaurus",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 4
         },
         {
           "subject": "Brachiosaurus",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 5
         },
         {
           "subject": "Woolly mammoth",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 6
         },
         {
           "subject": "Saber-toothed cat",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 7
         },
         {
           "subject": "Dodo",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 8
         },
         {
           "subject": "Ankylosaurus",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 9
         },
         {
           "subject": "Pteranodon",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 10
         },
         {
           "subject": "Megalodon",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 11
         },
         {
           "subject": "Diplodocus",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 12
         },
         {
           "subject": "Spinosaurus",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 13
         },
         {
           "subject": "Iguanodon",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 14
         },
         {
           "subject": "Giant ground sloth",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 15
         },
         {
           "subject": "Quagga",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 16
         },
         {
           "subject": "Archaeopteryx",
           "difficulty": 2,
           "is_active": true,
+          "sticker": null,
           "position": 17
         },
         {
           "subject": "Dunkleosteus",
           "difficulty": 2,
           "is_active": true,
+          "sticker": null,
           "position": 18
         },
         {
           "subject": "Dimetrodon",
           "difficulty": 2,
           "is_active": true,
+          "sticker": null,
           "position": 19
         },
         {
           "subject": "Paraceratherium",
           "difficulty": 2,
           "is_active": true,
+          "sticker": null,
           "position": 20
         }
       ]
@@ -1431,125 +1651,147 @@
       "difficulty": 1,
       "is_active": true,
       "subscription_access": true,
+      "is_exclusive": false,
+      "is_battle": false,
       "challenges": [
         {
           "subject": "Cleopatra",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 0
         },
         {
           "subject": "Ivan the Terrible",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 1
         },
         {
           "subject": "Louis XIV",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 2
         },
         {
           "subject": "Charlemagne",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 3
         },
         {
           "subject": "Queen Elizabeth I",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 4
         },
         {
           "subject": "Marie Antoinette",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 5
         },
         {
           "subject": "Tutankhamun",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 6
         },
         {
           "subject": "Hammurabi",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 7
         },
         {
           "subject": "Napoleon Bonaparte",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 8
         },
         {
           "subject": "Hatshepsut",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 9
         },
         {
           "subject": "Alexander the Great",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 10
         },
         {
           "subject": "Montezuma II",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 11
         },
         {
           "subject": "Catherine the Great",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 12
         },
         {
           "subject": "Kublai Khan",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 13
         },
         {
           "subject": "Queen Victoria",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 14
         },
         {
           "subject": "Julius Caesar",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 15
         },
         {
           "subject": "Mansa Musa",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 16
         },
         {
           "subject": "Henry VIII",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 17
         },
         {
           "subject": "Suleiman the Magnificent",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 18
         },
         {
           "subject": "Genghis Khan",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 19
         }
       ]
@@ -1560,126 +1802,194 @@
       "difficulty": 1,
       "is_active": true,
       "subscription_access": true,
+      "is_exclusive": false,
+      "is_battle": false,
       "challenges": [
         {
           "subject": "Eiffel Tower",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 1
         },
         {
           "subject": "Great Wall of China",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 2
         },
         {
           "subject": "Statue of Liberty",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 3
         },
         {
           "subject": "Taj Mahal",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 4
         },
         {
           "subject": "Colosseum",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 5
         },
         {
           "subject": "Pyramids of Giza",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 6
         },
         {
           "subject": "Big Ben",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 7
         },
         {
           "subject": "Sydney Opera House",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 8
         },
         {
           "subject": "Machu Picchu",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 9
         },
         {
           "subject": "Petra",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 10
         },
         {
           "subject": "Christ the Redeemer",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 11
         },
         {
           "subject": "Angkor Wat",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 12
         },
         {
           "subject": "Burj Khalifa",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 13
         },
         {
           "subject": "Stonehenge",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 14
         },
         {
           "subject": "Sagrada Familia",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 15
         },
         {
           "subject": "Mount Rushmore",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 16
         },
         {
           "subject": "Moai statues",
           "difficulty": 2,
           "is_active": true,
+          "sticker": null,
           "position": 17
         },
         {
           "subject": "Borobudur",
           "difficulty": 2,
           "is_active": true,
+          "sticker": null,
           "position": 18
         },
         {
           "subject": "Chichen Itza",
           "difficulty": 2,
           "is_active": true,
+          "sticker": null,
           "position": 19
         },
         {
           "subject": "Leshan Giant Buddha",
           "difficulty": 2,
           "is_active": true,
+          "sticker": null,
           "position": 20
+        }
+      ]
+    },
+    {
+      "name": "Things That Are Red",
+      "description": "Everyday objects, creatures, and items known for their red color",
+      "difficulty": 1,
+      "is_active": true,
+      "subscription_access": false,
+      "is_exclusive": false,
+      "is_battle": true,
+      "challenges": [
+        {
+          "subject": "Strawberry",
+          "difficulty": 0,
+          "is_active": true,
+          "sticker": "5f2084bb-5258-4a1f-86e2-cc9b7ba69658",
+          "position": 1
+        },
+        {
+          "subject": "Fire truck",
+          "difficulty": 0,
+          "is_active": true,
+          "sticker": "cd7e15d4-8b61-460a-91d6-d96be03aff77",
+          "position": 2
+        },
+        {
+          "subject": "Stop sign",
+          "difficulty": 2,
+          "is_active": true,
+          "sticker": "e6b8a2c3-8af8-43cb-9ac6-6198177d0408",
+          "position": 3
+        },
+        {
+          "subject": "Lobster",
+          "difficulty": 2,
+          "is_active": true,
+          "sticker": "c4e47f99-20d7-4b7c-ad55-22771f492cf0",
+          "position": 4
+        },
+        {
+          "subject": "Blood",
+          "difficulty": 2,
+          "is_active": true,
+          "sticker": "4e6494cd-7adf-417c-ba2c-f3dd7a41a2be",
+          "position": 5
         }
       ]
     },
@@ -1689,125 +1999,147 @@
       "difficulty": 1,
       "is_active": true,
       "subscription_access": true,
+      "is_exclusive": false,
+      "is_battle": false,
       "challenges": [
         {
           "subject": "Harry Potter",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 1
         },
         {
           "subject": "The Lord of the Rings",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 2
         },
         {
           "subject": "Romeo and Juliet",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 3
         },
         {
           "subject": "The Cat in the Hat",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 4
         },
         {
           "subject": "Alice in Wonderland",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 5
         },
         {
           "subject": "Sherlock Holmes",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 6
         },
         {
           "subject": "The Hobbit",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 7
         },
         {
           "subject": "Cinderella",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 8
         },
         {
           "subject": "Pride and Prejudice",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 9
         },
         {
           "subject": "Moby-Dick",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 10
         },
         {
           "subject": "Dracula",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 11
         },
         {
           "subject": "Frankenstein",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 12
         },
         {
           "subject": "The Odyssey",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 13
         },
         {
           "subject": "The Great Gatsby",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 14
         },
         {
           "subject": "Nineteen Eighty-Four",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 15
         },
         {
           "subject": "The Little Prince",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 16
         },
         {
           "subject": "Don Quixote",
           "difficulty": 2,
           "is_active": true,
+          "sticker": null,
           "position": 17
         },
         {
           "subject": "The Canterbury Tales",
           "difficulty": 2,
           "is_active": true,
+          "sticker": null,
           "position": 18
         },
         {
           "subject": "One Thousand and One Nights",
           "difficulty": 2,
           "is_active": true,
+          "sticker": null,
           "position": 19
         },
         {
           "subject": "The Divine Comedy",
           "difficulty": 2,
           "is_active": true,
+          "sticker": null,
           "position": 20
         }
       ]
@@ -1818,125 +2150,147 @@
       "difficulty": 0,
       "is_active": true,
       "subscription_access": true,
+      "is_exclusive": false,
+      "is_battle": false,
       "challenges": [
         {
           "subject": "butter knife",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 0
         },
         {
           "subject": "teapot",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 1
         },
         {
           "subject": "slippers",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 2
         },
         {
           "subject": "toaster",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 3
         },
         {
           "subject": "breakfast tray",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 4
         },
         {
           "subject": "coffee mug",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 5
         },
         {
           "subject": "toothbrush",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 6
         },
         {
           "subject": "blender",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 7
         },
         {
           "subject": "French press",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 8
         },
         {
           "subject": "newspaper",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 9
         },
         {
           "subject": "travel thermos",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 10
         },
         {
           "subject": "juicer",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 11
         },
         {
           "subject": "espresso machine",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 12
         },
         {
           "subject": "alarm clock",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 13
         },
         {
           "subject": "milk frother",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 14
         },
         {
           "subject": "cereal bowl",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 15
         },
         {
           "subject": "kettle",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 16
         },
         {
           "subject": "bathrobe",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 17
         },
         {
           "subject": "sugar bowl",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 18
         },
         {
           "subject": "hairbrush",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 19
         }
       ]
@@ -1947,125 +2301,147 @@
       "difficulty": 1,
       "is_active": true,
       "subscription_access": true,
+      "is_exclusive": false,
+      "is_battle": false,
       "challenges": [
         {
           "subject": "David Bowie",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 0
         },
         {
           "subject": "Freddie Mercury",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 1
         },
         {
           "subject": "Bob Dylan",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 2
         },
         {
           "subject": "Joni Mitchell",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 3
         },
         {
           "subject": "Jimi Hendrix",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 4
         },
         {
           "subject": "Dolly Parton",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 5
         },
         {
           "subject": "Madonna",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 6
         },
         {
           "subject": "Prince",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 7
         },
         {
           "subject": "Tina Turner",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 8
         },
         {
           "subject": "Bob Marley",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 9
         },
         {
           "subject": "Michael Jackson",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 10
         },
         {
           "subject": "Aretha Franklin",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 11
         },
         {
           "subject": "Ray Charles",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 12
         },
         {
           "subject": "Elvis Presley",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 13
         },
         {
           "subject": "Whitney Houston",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 14
         },
         {
           "subject": "Johnny Cash",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 15
         },
         {
           "subject": "John Lennon",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 16
         },
         {
           "subject": "Janis Joplin",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 17
         },
         {
           "subject": "Stevie Wonder",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 18
         },
         {
           "subject": "Paul McCartney",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 19
         }
       ]
@@ -2076,125 +2452,147 @@
       "difficulty": 1,
       "is_active": true,
       "subscription_access": true,
+      "is_exclusive": false,
+      "is_battle": false,
       "challenges": [
         {
           "subject": "Federico Fellini",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 0
         },
         {
           "subject": "Alfred Hitchcock",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 1
         },
         {
           "subject": "Humphrey Bogart",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 2
         },
         {
           "subject": "Greta Garbo",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 3
         },
         {
           "subject": "Buster Keaton",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 4
         },
         {
           "subject": "Audrey Hepburn",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 5
         },
         {
           "subject": "Cary Grant",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 6
         },
         {
           "subject": "Orson Welles",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 7
         },
         {
           "subject": "Vivien Leigh",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 8
         },
         {
           "subject": "Charlie Chaplin",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 9
         },
         {
           "subject": "Bette Davis",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 10
         },
         {
           "subject": "Akira Kurosawa",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 11
         },
         {
           "subject": "James Dean",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 12
         },
         {
           "subject": "Marilyn Monroe",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 13
         },
         {
           "subject": "Ingmar Bergman",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 14
         },
         {
           "subject": "Grace Kelly",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 15
         },
         {
           "subject": "Stanley Kubrick",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 16
         },
         {
           "subject": "Rita Hayworth",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 17
         },
         {
           "subject": "Katharine Hepburn",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 18
         },
         {
           "subject": "Clark Gable",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 19
         }
       ]
@@ -2205,125 +2603,147 @@
       "difficulty": 2,
       "is_active": true,
       "subscription_access": true,
+      "is_exclusive": false,
+      "is_battle": false,
       "challenges": [
         {
           "subject": "Moon",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 1
         },
         {
           "subject": "Sun",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 2
         },
         {
           "subject": "Mars",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 3
         },
         {
           "subject": "Jupiter",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 4
         },
         {
           "subject": "Saturn",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 5
         },
         {
           "subject": "Venus",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 6
         },
         {
           "subject": "Milky Way",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 7
         },
         {
           "subject": "Comet",
           "difficulty": 0,
           "is_active": true,
+          "sticker": null,
           "position": 8
         },
         {
           "subject": "Orion",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 9
         },
         {
           "subject": "Shooting star",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 10
         },
         {
           "subject": "Black hole",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 11
         },
         {
           "subject": "Andromeda Galaxy",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 12
         },
         {
           "subject": "Polaris",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 13
         },
         {
           "subject": "Nebula",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 14
         },
         {
           "subject": "Asteroid belt",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 15
         },
         {
           "subject": "International Space Station",
           "difficulty": 1,
           "is_active": true,
+          "sticker": null,
           "position": 16
         },
         {
           "subject": "Betelgeuse",
           "difficulty": 2,
           "is_active": true,
+          "sticker": null,
           "position": 17
         },
         {
           "subject": "Pleiades",
           "difficulty": 2,
           "is_active": true,
+          "sticker": null,
           "position": 18
         },
         {
           "subject": "Crab Nebula",
           "difficulty": 2,
           "is_active": true,
+          "sticker": null,
           "position": 19
         },
         {
           "subject": "Kuiper Belt",
           "difficulty": 2,
           "is_active": true,
+          "sticker": null,
           "position": 20
         }
       ]
