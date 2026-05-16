@@ -79,6 +79,12 @@ def _sync_packs(payload: dict) -> tuple[int, int, int, set[str]]:
     for pack_data in payload.get("challenge_packs", []):
         pack_id = _require_id(pack_data, "challenge_pack")
         pack = db.session.get(ChallengePack, pack_id)
+        if pack is None:
+            pack = db.session.execute(
+                db.select(ChallengePack)
+                .where(ChallengePack.name == pack_data["name"])
+                .order_by(ChallengePack.created_at)
+            ).scalars().first()
         pack_values = dict(
             name=pack_data["name"],
             description=pack_data.get("description"),
@@ -97,7 +103,9 @@ def _sync_packs(payload: dict) -> tuple[int, int, int, set[str]]:
             touched_pack_ids.add(pack_id)
         elif _apply_changes(pack, pack_values):
             updated += 1
-            touched_pack_ids.add(pack_id)
+            touched_pack_ids.add(pack.id)
+
+        synced_pack_id = pack.id
 
         for challenge_data in pack_data.get("challenges", []):
             challenge_id = _optional_id(challenge_data)
@@ -105,8 +113,17 @@ def _sync_packs(payload: dict) -> tuple[int, int, int, set[str]]:
                 continue
 
             challenge = db.session.get(Challenge, challenge_id)
+            if challenge is None:
+                challenge = db.session.execute(
+                    db.select(Challenge)
+                    .where(
+                        Challenge.pack_id == synced_pack_id,
+                        Challenge.subject == challenge_data["subject"],
+                    )
+                    .order_by(Challenge.position, Challenge.created_at)
+                ).scalars().first()
             challenge_values = dict(
-                pack_id=pack_id,
+                pack_id=synced_pack_id,
                 subject=challenge_data["subject"],
                 subject_hint=challenge_data.get("subject_hint"),
                 difficulty=challenge_data["difficulty"],
@@ -119,10 +136,10 @@ def _sync_packs(payload: dict) -> tuple[int, int, int, set[str]]:
                 challenge = Challenge(id=challenge_id, **challenge_values)
                 db.session.add(challenge)
                 inserted += 1
-                touched_pack_ids.add(pack_id)
+                touched_pack_ids.add(synced_pack_id)
             elif _apply_changes(challenge, challenge_values):
                 updated += 1
-                touched_pack_ids.add(pack_id)
+                touched_pack_ids.add(synced_pack_id)
             challenge_total += 1
 
     return inserted, updated, challenge_total, touched_pack_ids
@@ -139,6 +156,10 @@ def _sync_achievements(payload: dict) -> tuple[int, int, int]:
             continue
 
         achievement = db.session.get(Achievement, achievement_id)
+        if achievement is None:
+            achievement = db.session.execute(
+                db.select(Achievement).where(Achievement.name == data["name"])
+            ).scalar_one_or_none()
         values = dict(
             name=data["name"],
             description=data["description"],
