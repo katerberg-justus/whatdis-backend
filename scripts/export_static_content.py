@@ -42,6 +42,7 @@ def _pack_difficulty(pack: ChallengePack, challenges: list[Challenge]) -> int:
 
 def _challenge_payload(challenge: Challenge) -> dict:
     return {
+        "id": challenge.id,
         "subject": challenge.subject,
         "subject_hint": challenge.subject_hint,
         "difficulty": int(challenge.difficulty),
@@ -73,6 +74,7 @@ def _pack_payload(pack: ChallengePack) -> dict:
 
 def _achievement_payload(achievement: Achievement) -> dict:
     return {
+        "id": achievement.id,
         "name": achievement.name,
         "description": achievement.description,
         "category": achievement.category,
@@ -83,11 +85,10 @@ def _achievement_payload(achievement: Achievement) -> dict:
 
 def _daily_payload(slot: DailyChallenge) -> dict:
     return {
+        "id": slot.id,
         "available_on": slot.available_on.isoformat(),
         "difficulty": int(slot.difficulty),
-        "pack_id": slot.challenge.pack.id,
-        "pack_name": slot.challenge.pack.name,
-        "subject": slot.challenge.subject,
+        "challenge_id": slot.challenge_id,
     }
 
 
