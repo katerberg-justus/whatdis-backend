@@ -20,6 +20,8 @@ COPY . .
 
 EXPOSE 8000
 
+ENTRYPOINT ["python", "scripts/container_entrypoint.py"]
+
 # gevent worker class: good for the I/O-heavy mix here (Redis, OpenAI, Stripe).
 # Note: the mariadb connector is a C extension and won't yield under gevent —
 # DB calls still work, they just block the greenlet.

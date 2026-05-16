@@ -40,6 +40,18 @@ def _get_pack_by_name(name: str) -> ChallengePack | None:
     ).scalar_one_or_none()
 
 
+def _get_pack_by_id(pack_id: str) -> ChallengePack | None:
+    return db.session.execute(
+        db.select(ChallengePack).where(ChallengePack.id == pack_id)
+    ).scalar_one_or_none()
+
+
+def _get_pack(pack_data: dict) -> ChallengePack | None:
+    if pack_data.get("id"):
+        return _get_pack_by_id(pack_data["id"])
+    return _get_pack_by_name(pack_data["name"])
+
+
 def _get_challenge(pack_id: str, subject: str) -> Challenge | None:
     return db.session.execute(
         db.select(Challenge).where(
@@ -67,16 +79,20 @@ def _sync_packs(payload: dict, prune: bool) -> tuple[int, int, int, set[str]]:
     pack_count = 0
     challenge_count = 0
     changed = 0
-    active_pack_names = set()
+    active_pack_ids = set()
+    active_pack_names_without_ids = set()
     active_challenge_keys = set()
     touched_pack_ids = set()
 
     for pack_data in payload.get("challenge_packs", []):
-        active_pack_names.add(pack_data["name"])
-        pack = _get_pack_by_name(pack_data["name"])
+        if pack_data.get("id"):
+            active_pack_ids.add(pack_data["id"])
+        else:
+            active_pack_names_without_ids.add(pack_data["name"])
+        pack = _get_pack(pack_data)
         pack_difficulty = _normalized_pack_difficulty(pack_data)
         if pack is None:
-            pack = ChallengePack(
+            pack_values = dict(
                 name=pack_data["name"],
                 description=pack_data.get("description"),
                 difficulty=pack_difficulty,
@@ -85,6 +101,9 @@ def _sync_packs(payload: dict, prune: bool) -> tuple[int, int, int, set[str]]:
                 is_exclusive=pack_data.get("is_exclusive", False),
                 is_battle=pack_data.get("is_battle", False),
             )
+            if pack_data.get("id"):
+                pack_values["id"] = pack_data["id"]
+            pack = ChallengePack(**pack_values)
             db.session.add(pack)
             db.session.flush()
             changed += 1
@@ -99,7 +118,7 @@ def _sync_packs(payload: dict, prune: bool) -> tuple[int, int, int, set[str]]:
         pack_count += 1
 
         for challenge_data in pack_data.get("challenges", []):
-            key = (pack_data["name"], challenge_data["subject"])
+            key = (pack.id, challenge_data["subject"])
             active_challenge_keys.add(key)
             challenge = _get_challenge(pack.id, challenge_data["subject"])
             if challenge is None:
@@ -120,16 +139,23 @@ def _sync_packs(payload: dict, prune: bool) -> tuple[int, int, int, set[str]]:
     if prune:
         existing_packs = db.session.execute(db.select(ChallengePack)).scalars()
         for pack in existing_packs:
-            if pack.name not in active_pack_names and pack.is_active:
+            if (
+                pack.id not in active_pack_ids
+                and pack.name not in active_pack_names_without_ids
+                and pack.is_active
+            ):
                 pack.is_active = False
                 touched_pack_ids.add(pack.id)
 
         existing_challenges = db.session.execute(
-            db.select(Challenge, ChallengePack.name)
+            db.select(Challenge)
             .join(ChallengePack, ChallengePack.id == Challenge.pack_id)
-        ).all()
-        for challenge, pack_name in existing_challenges:
-            if (pack_name, challenge.subject) not in active_challenge_keys and challenge.is_active:
+        ).scalars()
+        for challenge in existing_challenges:
+            if (
+                (challenge.pack_id, challenge.subject) not in active_challenge_keys
+                and challenge.is_active
+            ):
                 challenge.is_active = False
                 touched_pack_ids.add(challenge.pack_id)
 
@@ -171,14 +197,19 @@ def _sync_daily_challenges(payload: dict) -> int:
             )
         seen_slots.add(payload_key)
 
-        pack = _get_pack_by_name(data["pack_name"])
+        if data.get("pack_id"):
+            pack = _get_pack_by_id(data["pack_id"])
+        else:
+            pack = _get_pack_by_name(data["pack_name"])
         if pack is None:
-            raise ValueError(f"Daily challenge pack not found: {data['pack_name']}")
+            pack_ref = data.get("pack_id") or data["pack_name"]
+            raise ValueError(f"Daily challenge pack not found: {pack_ref}")
 
         challenge = _get_challenge(pack.id, data["subject"])
         if challenge is None:
+            pack_ref = data.get("pack_name") or data.get("pack_id")
             raise ValueError(
-                f"Daily challenge subject not found in {data['pack_name']}: {data['subject']}"
+                f"Daily challenge subject not found in {pack_ref}: {data['subject']}"
             )
 
         available_on = date.fromisoformat(data["available_on"])
@@ -206,7 +237,10 @@ def _clear_static_cache(touched_pack_ids: set[str]) -> None:
     cache.delete("challenge_packs:list")
     cache.delete("challenge_packs:list:public-stickers:v1")
     cache.delete("challenge_packs:list:public-stickers:v2")
-    for pack_id in touched_pack_ids:
+
+    pack_ids = set(touched_pack_ids)
+    pack_ids.update(db.session.execute(db.select(ChallengePack.id)).scalars())
+    for pack_id in pack_ids:
         cache.delete(f"challenge_packs:challenges:{pack_id}")
         cache.delete(f"challenge_packs:challenges:public-stickers:v1:{pack_id}")
 

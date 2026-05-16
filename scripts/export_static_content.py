@@ -59,6 +59,7 @@ def _pack_payload(pack: ChallengePack) -> dict:
     ).scalars())
 
     return {
+        "id": pack.id,
         "name": pack.name,
         "description": pack.description,
         "difficulty": _pack_difficulty(pack, challenges),
@@ -84,6 +85,7 @@ def _daily_payload(slot: DailyChallenge) -> dict:
     return {
         "available_on": slot.available_on.isoformat(),
         "difficulty": int(slot.difficulty),
+        "pack_id": slot.challenge.pack.id,
         "pack_name": slot.challenge.pack.name,
         "subject": slot.challenge.subject,
     }
