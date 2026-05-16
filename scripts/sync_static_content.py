@@ -191,23 +191,47 @@ def _sync_daily_challenges(payload: dict) -> tuple[int, int, int]:
 
         slot_key = (data["available_on"], data["difficulty"])
         if slot_key in seen_slots:
-            raise ValueError(
-                f"Duplicate daily slot in seed file: {data['available_on']} "
-                f"difficulty={data['difficulty']}"
-            )
+            continue
         seen_slots.add(slot_key)
 
-        challenge_id = data["challenge_id"]
-        if db.session.get(Challenge, challenge_id) is None:
-            raise ValueError(f"Daily challenge references unknown challenge id: {challenge_id}")
+        challenge_id = data.get("challenge_id")
+        challenge = db.session.get(Challenge, challenge_id) if challenge_id else None
+        if challenge is None and data.get("subject"):
+            pack = None
+            if data.get("pack_id"):
+                pack = db.session.get(ChallengePack, data["pack_id"])
+            if pack is None and data.get("pack_name"):
+                pack = db.session.execute(
+                    db.select(ChallengePack)
+                    .where(ChallengePack.name == data["pack_name"])
+                    .order_by(ChallengePack.created_at)
+                ).scalars().first()
+            if pack is not None:
+                challenge = db.session.execute(
+                    db.select(Challenge)
+                    .where(
+                        Challenge.pack_id == pack.id,
+                        Challenge.subject == data["subject"],
+                    )
+                    .order_by(Challenge.position, Challenge.created_at)
+                ).scalars().first()
+        if challenge is None:
+            continue
 
         values = dict(
-            challenge_id=challenge_id,
+            challenge_id=challenge.id,
             available_on=date.fromisoformat(data["available_on"]),
             difficulty=data["difficulty"],
         )
 
         slot = db.session.get(DailyChallenge, slot_id)
+        if slot is None:
+            slot = db.session.execute(
+                db.select(DailyChallenge).where(
+                    DailyChallenge.available_on == values["available_on"],
+                    DailyChallenge.difficulty == values["difficulty"],
+                )
+            ).scalar_one_or_none()
         if slot is None:
             db.session.add(DailyChallenge(id=slot_id, **values))
             inserted += 1
