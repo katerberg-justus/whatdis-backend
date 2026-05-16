@@ -12,8 +12,10 @@ def _enabled(name: str, default: bool = True) -> bool:
 
 def _run_static_sync() -> None:
     command = [sys.executable, "scripts/sync_static_content.py"]
-    if _enabled("STATIC_CONTENT_SYNC_PRUNE", default=False):
+    if _enabled("STATIC_CONTENT_SYNC_PRUNE", default=True):
         command.append("--prune")
+    else:
+        command.append("--no-prune")
 
     print("Running static content sync...", flush=True)
     subprocess.run(command, check=True)

@@ -4,8 +4,8 @@ Sync static challenge and achievement content into the configured Flask DB.
 Run after migrations in prod:
     python scripts/sync_static_content.py
 
-Use --prune to deactivate challenge packs/challenges that are no longer present
-in the seed file.
+By default, challenge packs/challenges that are no longer present in the seed
+file are deactivated. Use --no-prune to keep existing rows active.
 """
 import argparse
 from datetime import date
@@ -248,7 +248,19 @@ def _clear_static_cache(touched_pack_ids: set[str]) -> None:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--input", default=DEFAULT_INPUT)
-    parser.add_argument("--prune", action="store_true")
+    parser.add_argument(
+        "--prune",
+        dest="prune",
+        action="store_true",
+        default=True,
+        help="Deactivate challenge packs/challenges that are missing from the input.",
+    )
+    parser.add_argument(
+        "--no-prune",
+        dest="prune",
+        action="store_false",
+        help="Keep existing challenge packs/challenges active when missing from the input.",
+    )
     args = parser.parse_args()
 
     payload = _load_payload(args.input)
