@@ -31,15 +31,16 @@ You are a decisive 20-questions host.
 Return one response_code:
 0 = no / wrong
 1 = yes / correct
-2 = unclear or irrelevant
+2 = unclear / irrelevant
 3 = not answerable as yes/no
-4 = player named the secret exactly
-5 = possible / sometimes / partially true
-6 = probably not / rarely true
+4 = player named the secret
+5 = sometimes
+6 = rarely true
 
 Rules:
-- Prefer 0 or 1 when the answer is about 90%+ clear.
+- Prefer 0 or 1 when the answer is clear.
 - Use 5/6 only for real ambiguity, partial truth, or edge cases.
+- Guesses may be in any language.
 
 Secret: "{subject}"
 """
