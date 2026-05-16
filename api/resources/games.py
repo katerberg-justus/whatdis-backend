@@ -6,13 +6,11 @@ from sqlalchemy import func
 from api import db, limiter
 from api.common.base_model import utc_isoformat
 from api.common.challenge_enums import DIFFICULTY_LABEL
-from api.common.limits import guess_limit_for
 from api.models.game import Game
 from api.models.guess import Guess
 from api.models.challenge import Challenge
 from api.models.challenge_pack import ChallengePack
 from api.models.daily_challenge import DailyChallenge
-from api.models.user import User
 
 
 class GameListResource(Resource):
@@ -110,7 +108,6 @@ def _serialize(g: Game) -> dict:
     challenge = db.session.get(Challenge, g.challenge_id)
     pack = db.session.get(ChallengePack, challenge.pack_id) if challenge else None
     next_challenge = _next_challenge(challenge)
-    user = db.session.get(User, g.user_id)
     is_daily = _is_daily_game(g, challenge)
 
     return {
@@ -129,7 +126,6 @@ def _serialize(g: Game) -> dict:
         "pack_name": pack.name if pack else None,
         "position": _ordinal_position(challenge),
         "difficulty": DIFFICULTY_LABEL.get(challenge.difficulty) if challenge else None,
-        "guess_limit": guess_limit_for(user),
         "next_challenge": _serialize_next(next_challenge),
         "created_at": utc_isoformat(g.created_at),
         "updated_at": utc_isoformat(g.updated_at),

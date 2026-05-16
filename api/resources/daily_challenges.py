@@ -1,4 +1,5 @@
-from datetime import date
+from datetime import date, datetime
+from zoneinfo import ZoneInfo
 from flask import request
 from flask_restful import Resource, abort
 from flask_jwt_extended import jwt_required, get_jwt_identity, verify_jwt_in_request
@@ -8,7 +9,12 @@ from api.models.challenge import Challenge
 from api.models.game import Game
 from api.models.user import User
 from api.common.challenge_enums import VALID_DIFFICULTIES, DIFFICULTY_LABEL
-from api.common.limits import daily_limit_for, guess_limit_for
+
+AMSTERDAM_TZ = ZoneInfo("Europe/Amsterdam")
+
+
+def _today_in_amsterdam() -> date:
+    return datetime.now(AMSTERDAM_TZ).date()
 
 
 def _current_user_optional() -> User | None:
@@ -31,27 +37,12 @@ def _completed_challenge_ids(user: User) -> set:
     return set(rows)
 
 
-def _todays_games_count(user: User) -> int:
-    """Count distinct daily challenge games this user started today."""
-    from api.models.game import Game
-    from sqlalchemy import func, cast, Date
-    return db.session.execute(
-        db.select(func.count()).select_from(Game).join(
-            DailyChallenge, DailyChallenge.challenge_id == Game.challenge_id
-        ).where(
-            Game.user_id == user.id,
-            DailyChallenge.available_on == date.today(),
-        )
-    ).scalar_one()
-
-
-def _serialize(dc: DailyChallenge, guess_limit: int, completed: bool = False) -> dict:
+def _serialize(dc: DailyChallenge, completed: bool = False) -> dict:
     return {
         "id": dc.id,
         "challenge_id": dc.challenge_id,
         "available_on": dc.available_on.isoformat(),
         "difficulty": DIFFICULTY_LABEL.get(dc.difficulty, dc.difficulty),
-        "guess_limit": guess_limit,
         "completed": completed,
         "subject": dc.challenge.subject if (completed and dc.challenge) else None,
         "sticker": dc.challenge.sticker if (completed and dc.challenge) else None,
@@ -63,30 +54,19 @@ class DailyChallengeListResource(Resource):
 
     def get(self):
         user = _current_user_optional()
-        limit = daily_limit_for(user)
-        guess_limit = guess_limit_for(user)
 
         today_slots = db.session.execute(
             db.select(DailyChallenge)
-            .where(DailyChallenge.available_on == date.today())
+            .where(DailyChallenge.available_on == _today_in_amsterdam())
             .order_by(DailyChallenge.difficulty)
         ).scalars().all()
 
         completed_ids = _completed_challenge_ids(user) if user else set()
 
-        if user and user.is_subscribed:
-            return [
-                _serialize(dc, guess_limit, dc.challenge_id in completed_ids)
-                for dc in today_slots
-            ], 200
-
-        return {
-            "daily_limit": limit,
-            "challenges": [
-                _serialize(dc, guess_limit, dc.challenge_id in completed_ids)
-                for dc in today_slots
-            ],
-        }, 200
+        return [
+            _serialize(dc, dc.challenge_id in completed_ids)
+            for dc in today_slots
+        ], 200
 
     @jwt_required()
     def post(self):
@@ -117,7 +97,7 @@ class DailyChallengeListResource(Resource):
             db.session.rollback()
             return {"error": "A daily slot for that difficulty on that date already exists"}, 409
 
-        return _serialize(slot, guess_limit_for(None)), 201
+        return _serialize(slot), 201
 
 
 class DailyChallengeResource(Resource):
@@ -127,7 +107,7 @@ class DailyChallengeResource(Resource):
         dc = db.get_or_404(DailyChallenge, daily_id)
         user = db.session.get(User, get_jwt_identity())
         completed = dc.challenge_id in _completed_challenge_ids(user)
-        return _serialize(dc, guess_limit_for(user), completed), 200
+        return _serialize(dc, completed), 200
 
     def delete(self, daily_id):
         dc = db.get_or_404(DailyChallenge, daily_id)
@@ -146,7 +126,7 @@ class DailyChallengeByDateResource(Resource):
             return {"error": "Date must be YYYY-MM-DD"}, 400
 
         user = db.session.get(User, get_jwt_identity())
-        if target != date.today() and not user.is_subscribed:
+        if target != _today_in_amsterdam() and not user.is_subscribed:
             return {"error": "Subscription required to view non-today schedules"}, 403
 
         slots = db.session.execute(
@@ -155,4 +135,4 @@ class DailyChallengeByDateResource(Resource):
             .order_by(DailyChallenge.difficulty)
         ).scalars().all()
         completed_ids = _completed_challenge_ids(user)
-        return [_serialize(dc, guess_limit_for(user), dc.challenge_id in completed_ids) for dc in slots], 200
+        return [_serialize(dc, dc.challenge_id in completed_ids) for dc in slots], 200

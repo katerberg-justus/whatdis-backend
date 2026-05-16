@@ -306,8 +306,13 @@ class BattleGuessListResource(Resource):
             battle.current_turn_id = _other_player(battle, uid)
 
         db.session.commit()
-        check_after_battle_guess(user, won=(rc == WIN))
-        return {**_serialize_guess(guess), "energy_remaining": energy_remaining}, 201
+        new_achievements = check_after_battle_guess(user, won=(rc == WIN))
+        db.session.commit()
+        return {
+            **_serialize_guess(guess),
+            "energy_remaining": energy_remaining,
+            "new_achievements": new_achievements,
+        }, 201
 
 
 def _serialize(battle: Battle, viewer_id: str, include_guesses: bool = False) -> dict:

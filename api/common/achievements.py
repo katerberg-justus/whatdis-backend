@@ -110,53 +110,69 @@ def _award_category(user_id: str, category: str, count: int) -> list:
     return newly_earned
 
 
-def check_after_guess(user, won: bool = False) -> None:
-    """Call after a guess is committed. Updates streak and awards achievements."""
+def _serialize_new(achievements: list) -> list:
+    return [
+        {"id": a.id, "category": a.category, "name": a.name, "icon": a.icon}
+        for a in achievements
+    ]
+
+
+def check_after_guess(user, won: bool = False) -> list:
+    """Call after a guess is committed. Updates streak and awards achievements.
+    Returns newly-earned achievements (serialized) for surfacing to the client.
+    """
     try:
         user_id = user.id
         _update_streak(user)
 
+        newly: list = []
         guess_count = _count_guesses(user_id)
-        _award_category(user_id, "guesses", guess_count)
+        newly += _award_category(user_id, "guesses", guess_count)
 
         if won:
             win_count = _count_wins(user_id)
-            _award_category(user_id, "wins", win_count)
+            newly += _award_category(user_id, "wins", win_count)
 
-        _award_category(user_id, "streak", user.current_streak or 0)
+        newly += _award_category(user_id, "streak", user.current_streak or 0)
 
         db.session.flush()
+        return _serialize_new(newly)
     except Exception:
         db.session.rollback()
+        return []
 
 
-def check_after_battle_guess(user, won: bool = False) -> None:
-    """Call after a battle guess is committed."""
+def check_after_battle_guess(user, won: bool = False) -> list:
+    """Call after a battle guess is committed. Returns newly-earned achievements."""
     try:
         user_id = user.id
         _update_streak(user)
 
+        newly: list = []
         guess_count = _count_guesses(user_id)
-        _award_category(user_id, "guesses", guess_count)
+        newly += _award_category(user_id, "guesses", guess_count)
 
         if won:
             battle_wins = _count_battle_wins(user_id)
-            _award_category(user_id, "battle_won", battle_wins)
+            newly += _award_category(user_id, "battle_won", battle_wins)
             battles_played = _count_battles_played(user_id)
-            _award_category(user_id, "battle_played", battles_played)
+            newly += _award_category(user_id, "battle_played", battles_played)
 
-        _award_category(user_id, "streak", user.current_streak or 0)
+        newly += _award_category(user_id, "streak", user.current_streak or 0)
 
         db.session.flush()
+        return _serialize_new(newly)
     except Exception:
         db.session.rollback()
+        return []
 
 
-def check_after_daily(user) -> None:
-    """Call after a daily challenge game is completed."""
+def check_after_daily(user) -> list:
+    """Call after a daily challenge game is completed. Returns newly-earned achievements."""
     try:
-        daily_count = _count_daily_completions(user.id)
-        _award_category(user.id, "daily", daily_count)
+        newly = _award_category(user.id, "daily", _count_daily_completions(user.id))
         db.session.flush()
+        return _serialize_new(newly)
     except Exception:
         db.session.rollback()
+        return []

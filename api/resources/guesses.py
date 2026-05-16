@@ -81,11 +81,16 @@ class GuessListResource(Resource):
         db.session.add(guess)
         db.session.commit()
 
+        new_achievements: list = []
         if user:
-            check_after_guess(user, won=(rc == WIN))
+            new_achievements = check_after_guess(user, won=(rc == WIN))
             db.session.commit()
 
-        return {**_serialize(guess), "energy_remaining": energy_remaining}, 201
+        return {
+            **_serialize(guess),
+            "energy_remaining": energy_remaining,
+            "new_achievements": new_achievements,
+        }, 201
 
 
 class HintListResource(Resource):
