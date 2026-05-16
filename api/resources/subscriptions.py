@@ -15,7 +15,7 @@ from api.common.energy_boosters import (
     BOOSTERS,
     VALID_BOOSTER_IDS,
     booster_info,
-    stripe_price_id_for_booster,
+    stripe_price_id_for_booster_currency,
 )
 from api.common.subscription_plans import (
     DEFAULT_CURRENCY,
@@ -196,9 +196,9 @@ class NrgBoosterCheckoutSessionResource(Resource):
         if currency is None:
             return {"error": f"Invalid currency. Choose from: {', '.join(sorted(SUPPORTED_CURRENCIES))}"}, 400
 
-        price_id = stripe_price_id_for_booster(booster_id)
+        price_id = stripe_price_id_for_booster_currency(booster_id, currency)
         if not price_id:
-            return {"error": f"Stripe price not configured for {booster_id}"}, 500
+            return {"error": f"Stripe price not configured for {booster_id} in {currency}"}, 500
 
         booster = booster_info(booster_id)
         stripe.api_key = os.environ.get("STRIPE_SECRET_KEY")
