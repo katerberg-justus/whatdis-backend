@@ -298,6 +298,178 @@
       ]
     },
     {
+      "id": "019e3252-84de-7068-af8b-6ce1d69cf464",
+      "name": "Residents of the Zoo and Beyond",
+      "description": "The animal kingdom",
+      "difficulty": 1,
+      "is_active": true,
+      "subscription_access": false,
+      "is_exclusive": false,
+      "is_battle": false,
+      "challenges": [
+        {
+          "subject": "Dog",
+          "subject_hint": "Man's best friend, barks",
+          "difficulty": 0,
+          "is_active": true,
+          "sticker": "b109808a-8ba7-4457-920e-d28865c8e25f",
+          "position": 1
+        },
+        {
+          "subject": "Cat",
+          "subject_hint": "Common pet, purrs and meows",
+          "difficulty": 0,
+          "is_active": true,
+          "sticker": "6becb1a1-9649-41f8-be9c-d01532c8ba5e",
+          "position": 2
+        },
+        {
+          "subject": "Elephant",
+          "subject_hint": "Largest land animal, has a trunk",
+          "difficulty": 0,
+          "is_active": true,
+          "sticker": "2a0dd256-3d2f-4e98-b67d-5fd5c3a53b67",
+          "position": 3
+        },
+        {
+          "subject": "Lion",
+          "subject_hint": "King of the jungle, has a mane",
+          "difficulty": 0,
+          "is_active": true,
+          "sticker": "595801fc-5ea7-48e9-9778-188fdd404b71",
+          "position": 4
+        },
+        {
+          "subject": "Giraffe",
+          "subject_hint": "Tallest animal, long neck",
+          "difficulty": 0,
+          "is_active": true,
+          "sticker": "b0d9dc61-c330-4067-90b5-352504298f76",
+          "position": 5
+        },
+        {
+          "subject": "Penguin",
+          "subject_hint": "Flightless bird, lives in Antarctica",
+          "difficulty": 0,
+          "is_active": true,
+          "sticker": "b3bbdbef-1ab4-4d8e-9284-1d1d2d81ea8d",
+          "position": 6
+        },
+        {
+          "subject": "Kangaroo",
+          "subject_hint": "Australian marsupial, hops",
+          "difficulty": 0,
+          "is_active": true,
+          "sticker": "aa6a353a-33e1-4465-9e86-c7ea3dfc135e",
+          "position": 7
+        },
+        {
+          "subject": "Dolphin",
+          "subject_hint": "Intelligent marine mammal",
+          "difficulty": 1,
+          "is_active": true,
+          "sticker": "b469aa28-96b3-4be8-a21c-c2a92e44742f",
+          "position": 8
+        },
+        {
+          "subject": "Octopus",
+          "subject_hint": "Eight-armed sea creature",
+          "difficulty": 1,
+          "is_active": true,
+          "sticker": "36513d71-a6b6-4b24-8742-c0e8597a1767",
+          "position": 9
+        },
+        {
+          "subject": "Chimpanzee",
+          "subject_hint": "Great ape, close human relative",
+          "difficulty": 1,
+          "is_active": true,
+          "sticker": "6eebbe29-5bb4-4261-a1ac-993afba1c0d5",
+          "position": 10
+        },
+        {
+          "subject": "Cheetah",
+          "subject_hint": "Fastest land animal, spotted cat",
+          "difficulty": 1,
+          "is_active": true,
+          "sticker": "c53ea0a1-3fb8-4958-9b11-b6e33dc28b90",
+          "position": 11
+        },
+        {
+          "subject": "Koala",
+          "subject_hint": "Australian marsupial, eats eucalyptus",
+          "difficulty": 1,
+          "is_active": true,
+          "sticker": "2e6dca61-aee8-4821-a2ec-cdbb189cfa59",
+          "position": 12
+        },
+        {
+          "subject": "Hummingbird",
+          "subject_hint": "Tiny bird, hovers while feeding",
+          "difficulty": 1,
+          "is_active": true,
+          "sticker": "ae708b7c-82e7-4c5d-85e5-f964d62e58e9",
+          "position": 13
+        },
+        {
+          "subject": "Platypus",
+          "subject_hint": "Egg-laying mammal with duck bill",
+          "difficulty": 2,
+          "is_active": true,
+          "sticker": "42874c34-eb2f-4a36-bad3-8a3f4cbab663",
+          "position": 14
+        },
+        {
+          "subject": "Sloth",
+          "subject_hint": "Slow-moving rainforest tree dweller",
+          "difficulty": 2,
+          "is_active": true,
+          "sticker": "38f22ad5-a084-4b77-8e75-940603cf2035",
+          "position": 15
+        },
+        {
+          "subject": "Armadillo",
+          "subject_hint": "Armored mammal, rolls into a ball",
+          "difficulty": 2,
+          "is_active": true,
+          "sticker": "ae5cd542-d37b-46e1-b8c7-92bf98b2f22b",
+          "position": 16
+        },
+        {
+          "subject": "Hedgehog",
+          "subject_hint": "Small spiny mammal, nocturnal",
+          "difficulty": 2,
+          "is_active": true,
+          "sticker": "d8bf3328-d5cb-42b0-9b0f-1ca020e637fb",
+          "position": 17
+        },
+        {
+          "subject": "Lemur",
+          "subject_hint": "Madagascar primate with big eyes",
+          "difficulty": 2,
+          "is_active": true,
+          "sticker": "c709e0bd-3479-4b46-acf5-543e45787176",
+          "position": 18
+        },
+        {
+          "subject": "Walrus",
+          "subject_hint": "Arctic mammal with tusks and whiskers",
+          "difficulty": 2,
+          "is_active": true,
+          "sticker": "1a36f61c-e9c9-4814-a2bd-e461ff56b208",
+          "position": 19
+        },
+        {
+          "subject": "Meerkat",
+          "subject_hint": "African mongoose, stands upright on hind legs",
+          "difficulty": 2,
+          "is_active": true,
+          "sticker": "6a14af30-d940-4ad6-88ea-d8b992342f0f",
+          "position": 20
+        }
+      ]
+    },
+    {
       "id": "019e2baf-ca11-7f10-9f85-3d4fc13125b1",
       "name": "Things That Are Red",
       "description": "Everyday objects, creatures, and items known for their red color",
