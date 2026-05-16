@@ -6,7 +6,7 @@ from sqlalchemy.exc import IntegrityError
 from api import db, limiter
 from api.models.user import User
 from api.models.friendship import Friendship, PENDING, ACCEPTED
-from api.common.energy import get_energy, award_claim_bonus
+from api.common.energy import get_energy, get_energy_boost, award_claim_bonus
 from api.common.base_model import utc_isoformat
 from api.common.limits import ENERGY_DAILY_GUEST, ENERGY_DAILY_USER, ENERGY_MAX_SUBSCRIBER
 from api.resources.subscriptions import _active_subscription, _serialize as _serialize_sub
@@ -203,6 +203,8 @@ class FriendResource(Resource):
 def _serialize_user(u: User) -> dict:
     sub = _active_subscription(u.id)
     is_subscribed = sub is not None and sub.status in (STATUS_ACTIVE, STATUS_CANCELLED)
+    energy_boost = get_energy_boost(u)
+    max_energy = ENERGY_MAX_SUBSCRIBER if is_subscribed else (ENERGY_DAILY_GUEST if u.is_guest else ENERGY_DAILY_USER)
     return {
         "id": u.id,
         "name": u.name,
@@ -213,7 +215,8 @@ def _serialize_user(u: User) -> dict:
         "is_subscribed": is_subscribed,
         "subscription": _serialize_sub(sub) if sub else None,
         "energy": get_energy(u, is_subscribed=is_subscribed),
-        "max_energy": ENERGY_MAX_SUBSCRIBER if is_subscribed else (ENERGY_DAILY_GUEST if u.is_guest else ENERGY_DAILY_USER),
+        "energy_boost": energy_boost,
+        "max_energy": max_energy + energy_boost,
         "created_at": utc_isoformat(u.created_at),
         "updated_at": utc_isoformat(u.updated_at),
     }

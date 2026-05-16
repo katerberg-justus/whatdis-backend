@@ -28,6 +28,27 @@ class UserListResource(Resource):
         return _serialize(user), 201
 
 
+class UserAvailabilityResource(Resource):
+    """GET /users/check — public lookup for username/email availability."""
+    decorators = [limiter.limit("30 per minute")]
+
+    def get(self):
+        name = (request.args.get("name") or "").strip()
+        email = (request.args.get("email") or "").strip()
+        result = {}
+        if name:
+            exists = db.session.execute(
+                db.select(User.id).where(User.name == name)
+            ).first()
+            result["name"] = not exists
+        if email:
+            exists = db.session.execute(
+                db.select(User.id).where(User.email == email)
+            ).first()
+            result["email"] = not exists
+        return result, 200
+
+
 class UserResource(Resource):
     """GET /users/<id> — look up any user by id (friends need this)."""
     decorators = [jwt_required(), limiter.limit("30 per minute")]

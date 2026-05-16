@@ -40,8 +40,28 @@ def _anon_key(ip: str) -> str:
     return f"energy:anon:{ip}"
 
 
-def _user_key(user_id: str) -> str:
-    return f"energy:user:{user_id}"
+def _energy_boost(user) -> int:
+    try:
+        return max(0, int(getattr(user, "energy_boost", 0) or 0))
+    except (TypeError, ValueError):
+        return 0
+
+
+def get_energy_boost(user) -> int:
+    return _energy_boost(user)
+
+
+def _user_key(user) -> str:
+    return f"energy:user:{user.id}:boost:{_energy_boost(user)}"
+
+
+def _daily_user_energy(user) -> int:
+    daily = ENERGY_DAILY_GUEST if user.is_guest else ENERGY_DAILY_USER
+    return daily + _energy_boost(user)
+
+
+def _max_subscriber_energy(user) -> int:
+    return ENERGY_MAX_SUBSCRIBER + _energy_boost(user)
 
 
 def _count_todays_guesses(user_id: str) -> int:
@@ -68,17 +88,17 @@ def _count_todays_guesses(user_id: str) -> int:
     return int(solo) + int(battle)
 
 
-def _cached_user_energy(user_id: str) -> int | None:
+def _cached_user_energy(user) -> int | None:
     """Return cached remaining energy for a non-subscriber, or None on cache miss."""
-    raw = _raw_get_int(_user_key(user_id))
+    raw = _raw_get_int(_user_key(user))
     if raw is not None:
         return raw
-    return cache.get(_user_key(user_id))
+    return cache.get(_user_key(user))
 
 
-def _set_user_energy_cache(user_id: str, remaining: int) -> None:
-    if not _raw_set_int(_user_key(user_id), remaining, _seconds_until_midnight()):
-        cache.set(_user_key(user_id), remaining, timeout=_seconds_until_midnight())
+def _set_user_energy_cache(user, remaining: int) -> None:
+    if not _raw_set_int(_user_key(user), remaining, _seconds_until_midnight()):
+        cache.set(_user_key(user), remaining, timeout=_seconds_until_midnight())
 
 
 def _redis_backend():
@@ -149,22 +169,22 @@ def get_energy(user, ip: str | None = None, is_subscribed: bool | None = None) -
         today = date.today()
         if user.energy_replenished_date != today:
             current = user.energy_balance or 0
-            return min(current + ENERGY_DAILY_SUBSCRIBER, ENERGY_MAX_SUBSCRIBER)
+            return min(current + ENERGY_DAILY_SUBSCRIBER, _max_subscriber_energy(user))
         return user.energy_balance or 0
-    cached = _cached_user_energy(user.id)
+    cached = _cached_user_energy(user)
     if cached is not None:
         return cached
-    daily = ENERGY_DAILY_GUEST if user.is_guest else ENERGY_DAILY_USER
+    daily = _daily_user_energy(user)
     remaining = max(0, daily - _count_todays_guesses(user.id))
-    _set_user_energy_cache(user.id, remaining)
+    _set_user_energy_cache(user, remaining)
     return remaining
 
 
 def award_claim_bonus(user) -> int:
     """Award the guest-to-user energy bonus and return the new remaining energy."""
     remaining = get_energy(user, is_subscribed=False)
-    remaining = min(ENERGY_DAILY_USER, remaining + ENERGY_DAILY_GUEST)
-    _set_user_energy_cache(user.id, remaining)
+    remaining = min(ENERGY_DAILY_USER + _energy_boost(user), remaining + ENERGY_DAILY_GUEST)
+    _set_user_energy_cache(user, remaining)
     return remaining
 
 
@@ -204,20 +224,20 @@ def _consume_anon(ip: str, cost: int) -> tuple[bool, int]:
 
 
 def _consume_user(user, cost: int) -> tuple[bool, int]:
-    cached = _cached_user_energy(user.id)
+    cached = _cached_user_energy(user)
     if cached is not None:
         remaining = cached
     else:
-        daily = ENERGY_DAILY_GUEST if user.is_guest else ENERGY_DAILY_USER
+        daily = _daily_user_energy(user)
         remaining = max(0, daily - _count_todays_guesses(user.id))
     timeout = _seconds_until_midnight()
-    consumed = _consume_cached_counter(_user_key(user.id), remaining, cost, timeout)
+    consumed = _consume_cached_counter(_user_key(user), remaining, cost, timeout)
     if consumed is not None:
         return consumed
     if remaining < cost:
         return False, remaining
-    if not _raw_set_int(_user_key(user.id), remaining - cost, timeout):
-        cache.set(_user_key(user.id), remaining - cost, timeout=timeout)
+    if not _raw_set_int(_user_key(user), remaining - cost, timeout):
+        cache.set(_user_key(user), remaining - cost, timeout=timeout)
     return True, remaining - cost
 
 
@@ -236,6 +256,6 @@ def _maybe_replenish(user) -> bool:
     if user.energy_replenished_date == today:
         return False
     current = user.energy_balance or 0
-    user.energy_balance = min(current + ENERGY_DAILY_SUBSCRIBER, ENERGY_MAX_SUBSCRIBER)
+    user.energy_balance = min(current + ENERGY_DAILY_SUBSCRIBER, _max_subscriber_energy(user))
     user.energy_replenished_date = today
     return True

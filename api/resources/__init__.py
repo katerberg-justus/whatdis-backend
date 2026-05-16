@@ -11,7 +11,7 @@ def register_root_resources(api):
 
 
 def register_resources(api):
-    from api.resources.users import UserListResource, UserResource
+    from api.resources.users import UserListResource, UserResource, UserAvailabilityResource
     from api.resources.me import (
         MeResource,
         ClaimResource,
@@ -58,8 +58,9 @@ def register_resources(api):
     api.add_resource(MeAchievementListResource, "/me/achievements")
 
     # Users
-    api.add_resource(UserListResource, "/users")
-    api.add_resource(UserResource,     "/users/<string:user_id>")
+    api.add_resource(UserListResource,         "/users")
+    api.add_resource(UserAvailabilityResource, "/users/check")
+    api.add_resource(UserResource,             "/users/<string:user_id>")
 
     # Games
     api.add_resource(GameListResource, "/games")
