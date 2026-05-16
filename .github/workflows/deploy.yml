@@ -50,4 +50,3 @@ jobs:
             docker compose run --rm api flask db upgrade
             docker compose run --rm api python scripts/sync_static_content.py
             docker compose up -d
-            docker image prune -f

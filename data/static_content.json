@@ -12,6 +12,7 @@
       "is_battle": false,
       "challenges": [
         {
+          "id": "019e21a1-8f9d-7568-858c-f872f7524199",
           "subject": "pizza",
           "subject_hint": "Italian food, round, cheesy",
           "difficulty": 0,
@@ -20,6 +21,7 @@
           "position": 0
         },
         {
+          "id": "019e21a1-8f9e-7e0c-8a7d-4ac560aa71af",
           "subject": "beach",
           "subject_hint": "Sandy coastline, ocean, waves",
           "difficulty": 0,
@@ -28,6 +30,7 @@
           "position": 1
         },
         {
+          "id": "019e21a1-8f9e-7eac-b848-cfe398df9de4",
           "subject": "bicycle",
           "subject_hint": "Two-wheeled pedal vehicle",
           "difficulty": 0,
@@ -36,6 +39,7 @@
           "position": 2
         },
         {
+          "id": "019e21a1-8f9e-7ee8-a982-dc9a9fee38eb",
           "subject": "ice cream",
           "subject_hint": "Frozen sweet dairy dessert",
           "difficulty": 0,
@@ -44,6 +48,7 @@
           "position": 3
         },
         {
+          "id": "019e21a1-8f9f-706c-babf-7db4b7ecdd0a",
           "subject": "coffee",
           "subject_hint": "Caffeinated brewed beverage",
           "difficulty": 0,
@@ -52,6 +57,7 @@
           "position": 4
         },
         {
+          "id": "019e21a1-8f9f-70bc-9613-cd4e8ec209a1",
           "subject": "airport",
           "subject_hint": "Place where planes depart",
           "difficulty": 0,
@@ -60,6 +66,7 @@
           "position": 5
         },
         {
+          "id": "019e21a1-8f9f-7158-b859-1b2277e62ed2",
           "subject": "camping",
           "subject_hint": "Outdoor activity, tents, nature",
           "difficulty": 0,
@@ -68,6 +75,7 @@
           "position": 6
         },
         {
+          "id": "019e21a1-8f9f-71ac-8bd3-339799d2dcde",
           "subject": "sushi",
           "subject_hint": "Japanese raw fish dish",
           "difficulty": 1,
@@ -76,6 +84,7 @@
           "position": 7
         },
         {
+          "id": "019e21a1-8f9f-727c-8fbd-ef20b499739d",
           "subject": "museum",
           "subject_hint": "Building displaying art, artifacts",
           "difficulty": 1,
@@ -84,6 +93,7 @@
           "position": 8
         },
         {
+          "id": "019e21a1-8f9f-72d8-b414-9d2f2fa9f019",
           "subject": "gardening",
           "subject_hint": "Growing plants, hobby",
           "difficulty": 1,
@@ -92,6 +102,7 @@
           "position": 9
         },
         {
+          "id": "019e21a1-8faa-76d0-a9e0-fb62aafa3cbb",
           "subject": "recycling",
           "subject_hint": "Reusing materials, environmental practice",
           "difficulty": 1,
@@ -100,6 +111,7 @@
           "position": 10
         },
         {
+          "id": "019e21a1-8faa-7844-b8ba-7ebeb7c9de18",
           "subject": "library",
           "subject_hint": null,
           "difficulty": 1,
@@ -108,6 +120,7 @@
           "position": 11
         },
         {
+          "id": "019e21a1-8faa-78a0-ab29-5acbaa75df5c",
           "subject": "cooking",
           "subject_hint": "Preparing food, kitchen activity",
           "difficulty": 1,
@@ -116,6 +129,7 @@
           "position": 12
         },
         {
+          "id": "019e21a1-8faa-78f8-9e5f-2a86964cf99c",
           "subject": "hiking",
           "subject_hint": "Walking trails, outdoor activity",
           "difficulty": 1,
@@ -136,6 +150,7 @@
       "is_battle": false,
       "challenges": [
         {
+          "id": "019e212d-673c-7e9c-aa45-f81745e2fef8",
           "subject": "Paris",
           "subject_hint": "French capital, Eiffel Tower",
           "difficulty": 0,
@@ -144,6 +159,7 @@
           "position": 1
         },
         {
+          "id": "019e212d-673d-7b94-9182-9994c457e55b",
           "subject": "Tokyo",
           "subject_hint": "Japanese capital city",
           "difficulty": 0,
@@ -152,6 +168,7 @@
           "position": 2
         },
         {
+          "id": "019e212d-673d-7bf4-ab7a-2356e11fe125",
           "subject": "New York City",
           "subject_hint": "US city, Statue of Liberty",
           "difficulty": 0,
@@ -160,6 +177,7 @@
           "position": 3
         },
         {
+          "id": "019e212d-673d-7c34-b489-dc6d1cd3b7f4",
           "subject": "London",
           "subject_hint": "UK capital, Big Ben",
           "difficulty": 0,
@@ -168,6 +186,7 @@
           "position": 4
         },
         {
+          "id": "019e212d-673d-7c70-80da-fde4aee021c0",
           "subject": "Rome",
           "subject_hint": "Italian capital, Colosseum",
           "difficulty": 0,
@@ -176,6 +195,7 @@
           "position": 5
         },
         {
+          "id": "019e212d-673d-7c9c-8ee3-8b5cec0d03d5",
           "subject": "Amsterdam",
           "subject_hint": "Dutch capital, canals",
           "difficulty": 0,
@@ -184,6 +204,7 @@
           "position": 6
         },
         {
+          "id": "019e212d-673e-72d0-bd4f-14f93daa2f1d",
           "subject": "Sydney",
           "subject_hint": "Australian city, Opera House",
           "difficulty": 0,
@@ -192,6 +213,7 @@
           "position": 7
         },
         {
+          "id": "019e212d-673e-7318-bf2f-764b450b6ea0",
           "subject": "Venice",
           "subject_hint": "Italian canal city",
           "difficulty": 0,
@@ -200,6 +222,7 @@
           "position": 8
         },
         {
+          "id": "019e212d-673e-734c-8737-f3a42a2c5dfc",
           "subject": "Cairo",
           "subject_hint": "Egyptian capital, pyramids nearby",
           "difficulty": 1,
@@ -208,6 +231,7 @@
           "position": 9
         },
         {
+          "id": "019e212d-673e-7388-8167-d70260edac4a",
           "subject": "Buenos Aires",
           "subject_hint": "Argentinian capital city",
           "difficulty": 1,
@@ -216,6 +240,7 @@
           "position": 10
         },
         {
+          "id": "019e212d-673e-73bc-a5e0-e7864bd0b3dc",
           "subject": "Cape Town",
           "subject_hint": "South African coastal city",
           "difficulty": 1,
@@ -224,6 +249,7 @@
           "position": 11
         },
         {
+          "id": "019e212d-673e-73ec-9e54-6b58f3d79d85",
           "subject": "Marrakesh",
           "subject_hint": "Moroccan city, medina, souks",
           "difficulty": 1,
@@ -232,6 +258,7 @@
           "position": 12
         },
         {
+          "id": "019e212d-673e-741c-b6eb-c264585746bc",
           "subject": "Istanbul",
           "subject_hint": "Turkish city straddling continents",
           "difficulty": 1,
@@ -240,6 +267,7 @@
           "position": 13
         },
         {
+          "id": "019e212d-673e-744c-9a85-c4f2843da4c7",
           "subject": "Seoul",
           "subject_hint": "South Korean capital city",
           "difficulty": 1,
@@ -248,6 +276,7 @@
           "position": 14
         },
         {
+          "id": "019e212d-673e-7474-99ad-56d2401b37f7",
           "subject": "Bangkok",
           "subject_hint": "Thai capital city",
           "difficulty": 1,
@@ -256,6 +285,7 @@
           "position": 15
         },
         {
+          "id": "019e212d-673e-74a0-8784-e7e46e64e17b",
           "subject": "Prague",
           "subject_hint": "Czech capital, Charles Bridge",
           "difficulty": 1,
@@ -264,6 +294,7 @@
           "position": 16
         },
         {
+          "id": "019e212d-673e-74cc-ac3a-e8fff851a62d",
           "subject": "Reykjavik",
           "subject_hint": "Icelandic capital city",
           "difficulty": 2,
@@ -272,6 +303,7 @@
           "position": 17
         },
         {
+          "id": "019e212d-673e-776c-906f-cb4a9fab19bc",
           "subject": "Kathmandu",
           "subject_hint": "Nepalese capital, Himalayas",
           "difficulty": 2,
@@ -280,6 +312,7 @@
           "position": 18
         },
         {
+          "id": "019e212d-673e-77cc-a23e-4195073fe372",
           "subject": "Dubrovnik",
           "subject_hint": "Croatian walled coastal city",
           "difficulty": 2,
@@ -288,6 +321,7 @@
           "position": 19
         },
         {
+          "id": "019e212d-673e-78d4-8359-d394653c8098",
           "subject": "Timbuktu",
           "subject_hint": "Remote Malian desert city",
           "difficulty": 2,
@@ -308,6 +342,7 @@
       "is_battle": false,
       "challenges": [
         {
+          "id": "019e3256-a68b-727c-a614-4a6539339fc6",
           "subject": "Dog",
           "subject_hint": "Man's best friend, barks",
           "difficulty": 0,
@@ -316,6 +351,7 @@
           "position": 1
         },
         {
+          "id": "019e3256-a68b-77a0-a6ab-7b5986dc9840",
           "subject": "Cat",
           "subject_hint": "Common pet, purrs and meows",
           "difficulty": 0,
@@ -324,6 +360,7 @@
           "position": 2
         },
         {
+          "id": "019e3256-a68b-77d0-aa6b-9f3022af49b0",
           "subject": "Elephant",
           "subject_hint": "Largest land animal, has a trunk",
           "difficulty": 0,
@@ -332,6 +369,7 @@
           "position": 3
         },
         {
+          "id": "019e3256-a68b-7820-ad7b-431eef9dfe47",
           "subject": "Lion",
           "subject_hint": "King of the jungle, has a mane",
           "difficulty": 0,
@@ -340,6 +378,7 @@
           "position": 4
         },
         {
+          "id": "019e3256-a68b-783c-9ebe-52a306c523b9",
           "subject": "Giraffe",
           "subject_hint": "Tallest animal, long neck",
           "difficulty": 0,
@@ -348,6 +387,7 @@
           "position": 5
         },
         {
+          "id": "019e3256-a68b-7854-a86e-4351a98855d1",
           "subject": "Penguin",
           "subject_hint": "Flightless bird, lives in Antarctica",
           "difficulty": 0,
@@ -356,6 +396,7 @@
           "position": 6
         },
         {
+          "id": "019e3256-a68b-7868-830a-089e274f68fb",
           "subject": "Kangaroo",
           "subject_hint": "Australian marsupial, hops",
           "difficulty": 0,
@@ -364,6 +405,7 @@
           "position": 7
         },
         {
+          "id": "019e3256-a68b-7878-b92a-0794715d89ff",
           "subject": "Dolphin",
           "subject_hint": "Intelligent marine mammal",
           "difficulty": 1,
@@ -372,6 +414,7 @@
           "position": 8
         },
         {
+          "id": "019e3256-a68b-788c-a89e-2816cafc37de",
           "subject": "Octopus",
           "subject_hint": "Eight-armed sea creature",
           "difficulty": 1,
@@ -380,6 +423,7 @@
           "position": 9
         },
         {
+          "id": "019e3256-a68b-789c-a99d-2f1675ef02d6",
           "subject": "Chimpanzee",
           "subject_hint": "Great ape, close human relative",
           "difficulty": 1,
@@ -388,6 +432,7 @@
           "position": 10
         },
         {
+          "id": "019e3256-a68b-78b0-a70d-2459f06dbf80",
           "subject": "Cheetah",
           "subject_hint": "Fastest land animal, spotted cat",
           "difficulty": 1,
@@ -396,6 +441,7 @@
           "position": 11
         },
         {
+          "id": "019e3256-a68b-78c0-9607-3a484578eb9c",
           "subject": "Koala",
           "subject_hint": "Australian marsupial, eats eucalyptus",
           "difficulty": 1,
@@ -404,6 +450,7 @@
           "position": 12
         },
         {
+          "id": "019e3256-a68b-78d4-8dfd-8c81f8eb97a9",
           "subject": "Hummingbird",
           "subject_hint": "Tiny bird, hovers while feeding",
           "difficulty": 1,
@@ -412,6 +459,7 @@
           "position": 13
         },
         {
+          "id": "019e3256-a68b-78e4-bd25-83d6449ec951",
           "subject": "Platypus",
           "subject_hint": "Egg-laying mammal with duck bill",
           "difficulty": 2,
@@ -420,6 +468,7 @@
           "position": 14
         },
         {
+          "id": "019e3256-a68b-78f4-91f9-c4bfd5b63b5e",
           "subject": "Sloth",
           "subject_hint": "Slow-moving rainforest tree dweller",
           "difficulty": 2,
@@ -428,6 +477,7 @@
           "position": 15
         },
         {
+          "id": "019e3256-a68b-7934-b15d-3f234e8f975f",
           "subject": "Armadillo",
           "subject_hint": "Armored mammal, rolls into a ball",
           "difficulty": 2,
@@ -436,6 +486,7 @@
           "position": 16
         },
         {
+          "id": "019e3256-a68b-7950-af29-26fff6b03963",
           "subject": "Hedgehog",
           "subject_hint": "Small spiny mammal, nocturnal",
           "difficulty": 2,
@@ -444,6 +495,7 @@
           "position": 17
         },
         {
+          "id": "019e3256-a68b-7968-b091-00873c36084b",
           "subject": "Lemur",
           "subject_hint": "Madagascar primate with big eyes",
           "difficulty": 2,
@@ -452,6 +504,7 @@
           "position": 18
         },
         {
+          "id": "019e3256-a68b-797c-8222-0169f7b3893a",
           "subject": "Walrus",
           "subject_hint": "Arctic mammal with tusks and whiskers",
           "difficulty": 2,
@@ -460,6 +513,7 @@
           "position": 19
         },
         {
+          "id": "019e3256-a68b-798c-965a-29ca1bfb0254",
           "subject": "Meerkat",
           "subject_hint": "African mongoose, stands upright on hind legs",
           "difficulty": 2,
@@ -480,6 +534,7 @@
       "is_battle": true,
       "challenges": [
         {
+          "id": "019e2bb2-412d-73d8-80e3-bb8dfc29d353",
           "subject": "Strawberry",
           "subject_hint": "Red fruit, small, seeded",
           "difficulty": 0,
@@ -488,6 +543,7 @@
           "position": 1
         },
         {
+          "id": "019e2bb2-412e-7a44-ab1e-8e6cce2c360c",
           "subject": "Fire truck",
           "subject_hint": "Red emergency vehicle",
           "difficulty": 0,
@@ -496,6 +552,7 @@
           "position": 2
         },
         {
+          "id": "019e2bb2-412e-7c7c-b49b-4299a5fe8fe4",
           "subject": "Stop sign",
           "subject_hint": "Red octagonal traffic sign",
           "difficulty": 2,
@@ -504,6 +561,7 @@
           "position": 3
         },
         {
+          "id": "019e2bb2-412e-7d90-b9ce-32008416350f",
           "subject": "Lobster",
           "subject_hint": "Red shellfish with claws",
           "difficulty": 2,
@@ -512,6 +570,7 @@
           "position": 4
         },
         {
+          "id": "019e2bb2-412e-7de8-9087-ce9639e63dbd",
           "subject": "Blood",
           "subject_hint": "Red bodily fluid",
           "difficulty": 2,
@@ -524,6 +583,7 @@
   ],
   "achievements": [
     {
+      "id": "019e1b6d-5abb-75a4-b598-8ea7bd610d44",
       "name": "First Duel",
       "description": "You stepped into the arena. The crowd holds its breath.",
       "category": "battle_played",
@@ -531,6 +591,7 @@
       "icon": null
     },
     {
+      "id": "019e1b6d-5ae6-7e58-a1e6-b589ddb35bf5",
       "name": "Arena Regular",
       "description": "Five battles fought. You're no longer just a visitor.",
       "category": "battle_played",
@@ -538,6 +599,7 @@
       "icon": null
     },
     {
+      "id": "019e1b6d-5b12-7a20-a771-08dc6e414189",
       "name": "Seasoned Duelist",
       "description": "Twenty battles. You know the smell of the arena well.",
       "category": "battle_played",
@@ -545,6 +607,7 @@
       "icon": null
     },
     {
+      "id": "019e1b6d-5b3f-70b8-8823-7a16685917f3",
       "name": "Veteran of the Void",
       "description": "Fifty battles contested. Win or lose, you always return.",
       "category": "battle_played",
@@ -552,6 +615,7 @@
       "icon": null
     },
     {
+      "id": "019e1b6d-5b6b-7374-b21b-48b6871e24be",
       "name": "Centurion of Clashes",
       "description": "A hundred battles. The arena was built for someone like you.",
       "category": "battle_played",
@@ -559,6 +623,7 @@
       "icon": null
     },
     {
+      "id": "019e1b6d-5b97-7610-ab7f-01f1fcd35ee0",
       "name": "Battle-Hardened",
       "description": "Two hundred duels. Scars don't slow you down anymore.",
       "category": "battle_played",
@@ -566,6 +631,7 @@
       "icon": null
     },
     {
+      "id": "019e1b6d-5bc2-7a6c-bcda-69123ada84ca",
       "name": "The Relentless",
       "description": "Five hundred battles. Your opponents see your name and hesitate.",
       "category": "battle_played",
@@ -573,6 +639,7 @@
       "icon": null
     },
     {
+      "id": "019e1b6d-5bef-77d4-a798-666313902c14",
       "name": "Legend of the Arena",
       "description": "A thousand battles. They'll be telling stories about you long after.",
       "category": "battle_played",
@@ -580,6 +647,7 @@
       "icon": null
     },
     {
+      "id": "019e1b6d-5c1a-7724-aa1a-1e272428b608",
       "name": "First Conquest",
       "description": "You bested another mind. The taste of victory is yours.",
       "category": "battle_won",
@@ -587,6 +655,7 @@
       "icon": null
     },
     {
+      "id": "019e1b6d-5c46-7a10-a264-12dc7d022794",
       "name": "Five-Time Victor",
       "description": "Five opponents outwitted. You're developing a reputation.",
       "category": "battle_won",
@@ -594,6 +663,7 @@
       "icon": null
     },
     {
+      "id": "019e1b6d-5c72-7dc8-8575-e529df2023ea",
       "name": "Dominant Force",
       "description": "Twenty wins. Opponents are starting to study your patterns.",
       "category": "battle_won",
@@ -601,6 +671,7 @@
       "icon": null
     },
     {
+      "id": "019e1b6d-5c9e-793c-8a9c-51d8e68bba97",
       "name": "Champion of Fifty",
       "description": "Fifty battles won. The arena whispers your name.",
       "category": "battle_won",
@@ -608,6 +679,7 @@
       "icon": null
     },
     {
+      "id": "019e1b6d-5cca-7ad0-80bd-7d3e33a8a812",
       "name": "Uncrowned King",
       "description": "A hundred victories. The crown fits whether they give it or not.",
       "category": "battle_won",
@@ -615,6 +687,7 @@
       "icon": null
     },
     {
+      "id": "019e1b6d-5cf6-7de8-89db-b74bd1efc4f2",
       "name": "The Untouchable",
       "description": "Two hundred wins. Your opponents already know how this ends.",
       "category": "battle_won",
@@ -622,6 +695,7 @@
       "icon": null
     },
     {
+      "id": "019e1b6d-5d22-79a0-a18b-0c54b30171c8",
       "name": "Apex Predator",
       "description": "Five hundred duels claimed. You hunt secrets for sport.",
       "category": "battle_won",
@@ -629,6 +703,7 @@
       "icon": null
     },
     {
+      "id": "019e1b6d-5d4f-7488-94f8-c4ee0733235a",
       "name": "The Unconquerable",
       "description": "A thousand battles won. There is no opponent left who doesn't fear you.",
       "category": "battle_won",
@@ -636,6 +711,7 @@
       "icon": null
     },
     {
+      "id": "019e18cb-53d6-7bc4-b8d6-e0c5eaaf3313",
       "name": "First Dawn",
       "description": "You answered the call on day one. The ritual has begun.",
       "category": "daily",
@@ -643,6 +719,7 @@
       "icon": null
     },
     {
+      "id": "019e18cb-5406-7664-b38e-09c02fcce03c",
       "name": "Five Days Strong",
       "description": "Five daily challenges conquered. This is becoming a habit.",
       "category": "daily",
@@ -650,6 +727,7 @@
       "icon": null
     },
     {
+      "id": "019e18cb-5438-7cd4-ad21-95d7d0964b2c",
       "name": "Three-Week Warrior",
       "description": "Twenty daily challenges. You show up even when it's hard.",
       "category": "daily",
@@ -657,6 +735,7 @@
       "icon": null
     },
     {
+      "id": "019e18cb-5468-7c0c-9bff-e8264b6bd5a5",
       "name": "Golden Fifty",
       "description": "Fifty daily completions. A fixture of the daily leaderboard.",
       "category": "daily",
@@ -664,6 +743,7 @@
       "icon": null
     },
     {
+      "id": "019e18cb-549c-7234-bbb7-615be71e85d5",
       "name": "The Centurion's Call",
       "description": "A hundred daily challenges done. Rain, shine, or mystery — you're here.",
       "category": "daily",
@@ -671,6 +751,7 @@
       "icon": null
     },
     {
+      "id": "019e18cb-54cb-74e4-bc35-0345919b2a08",
       "name": "The Devoted",
       "description": "Two hundred daily challenges. What even is a rest day?",
       "category": "daily",
@@ -678,6 +759,7 @@
       "icon": null
     },
     {
+      "id": "019e18cb-54fc-7b34-a7e8-03bb1a5d08f9",
       "name": "Half-Millennium Daily",
       "description": "Five hundred daily challenges. This has become your daily bread.",
       "category": "daily",
@@ -685,6 +767,7 @@
       "icon": null
     },
     {
+      "id": "019e18cb-552f-7b64-b5c5-4cf5fe9e116d",
       "name": "The Faithful",
       "description": "A thousand daily challenges. Your loyalty is inscribed in the ledger.",
       "category": "daily",
@@ -692,6 +775,7 @@
       "icon": null
     },
     {
+      "id": "019e18cb-555f-7844-982c-1e91ba55fc10",
       "name": "Daily Deity",
       "description": "Five thousand daily challenges. The game bends to your schedule now.",
       "category": "daily",
@@ -699,6 +783,7 @@
       "icon": null
     },
     {
+      "id": "019e18cb-5042-78b4-88af-5adad1cc7250",
       "name": "First Whisper",
       "description": "You breathed your first question into the void. The game has begun.",
       "category": "guesses",
@@ -706,6 +791,7 @@
       "icon": null
     },
     {
+      "id": "019e18cb-5073-7d50-92f3-93956c4157cb",
       "name": "Curious Cat",
       "description": "Ten questions down. You're getting warmer.",
       "category": "guesses",
@@ -713,6 +799,7 @@
       "icon": null
     },
     {
+      "id": "019e18cb-50a4-7058-a31a-08680d583ed0",
       "name": "Fifty Shades of Maybe",
       "description": "Fifty guesses deep. You've tasted yes, no, and everything between.",
       "category": "guesses",
@@ -720,6 +807,7 @@
       "icon": null
     },
     {
+      "id": "019e18cb-50d4-7090-841c-dc54a753a194",
       "name": "Centurion of Questions",
       "description": "A hundred guesses asked. Your instincts are sharpening.",
       "category": "guesses",
@@ -727,6 +815,7 @@
       "icon": null
     },
     {
+      "id": "019e18cb-5104-740c-9796-d2732a5f93dd",
       "name": "The Half-Millennial",
       "description": "Five hundred questions. The sphinx would fear you by now.",
       "category": "guesses",
@@ -734,6 +823,7 @@
       "icon": null
     },
     {
+      "id": "019e18cb-5133-70e0-b954-2f246fa6a047",
       "name": "The Grand Inquisitor",
       "description": "A thousand guesses. You have made the art of asking your own.",
       "category": "guesses",
@@ -741,6 +831,7 @@
       "icon": null
     },
     {
+      "id": "019e18cb-5163-707c-9595-8f3d13627f10",
       "name": "Five Thousand Whispers",
       "description": "Five thousand questions. The universe has few secrets left from you.",
       "category": "guesses",
@@ -748,6 +839,7 @@
       "icon": null
     },
     {
+      "id": "019e18cb-5194-7154-9ad4-b246e0e6483d",
       "name": "Decamillennial Doubter",
       "description": "Ten thousand guesses. You've questioned everything — twice.",
       "category": "guesses",
@@ -755,6 +847,7 @@
       "icon": null
     },
     {
+      "id": "019e18cb-51c5-7640-b2e2-ab6a901189ca",
       "name": "Oracle's Shadow",
       "description": "Fifty thousand questions. You walk the line between seeker and sage.",
       "category": "guesses",
@@ -762,6 +855,7 @@
       "icon": null
     },
     {
+      "id": "019e18cb-51f7-7e44-b4ec-645e1405fc48",
       "name": "The All-Questioner",
       "description": "One hundred thousand guesses. You are the question itself.",
       "category": "guesses",
@@ -769,6 +863,7 @@
       "icon": null
     },
     {
+      "id": "019e18cb-558f-786c-8ebd-99f88a449727",
       "name": "Back-to-Back",
       "description": "Two days running. The flame flickers to life.",
       "category": "streak",
@@ -776,6 +871,7 @@
       "icon": null
     },
     {
+      "id": "019e18cb-55bf-73e0-bb58-afbd8b23e625",
       "name": "Week Warrior",
       "description": "Seven consecutive days. A full week of showing up.",
       "category": "streak",
@@ -783,6 +879,7 @@
       "icon": null
     },
     {
+      "id": "019e18cb-55f1-7364-b8f5-0b1f33f9a566",
       "name": "Fortnight of Fire",
       "description": "Fourteen days straight. Two weeks of unbroken devotion.",
       "category": "streak",
@@ -790,6 +887,7 @@
       "icon": null
     },
     {
+      "id": "019e18cb-5621-754c-b824-be5d0d285179",
       "name": "Monthly Master",
       "description": "Thirty consecutive days. A full month of daily dedication.",
       "category": "streak",
@@ -797,6 +895,7 @@
       "icon": null
     },
     {
+      "id": "019e18cb-5651-728c-a019-c2830237013e",
       "name": "Quarterly Legend",
       "description": "Ninety straight days. An entire quarter of unwavering resolve.",
       "category": "streak",
@@ -804,6 +903,7 @@
       "icon": null
     },
     {
+      "id": "019e18cb-5681-7370-9c59-0cf932ff2966",
       "name": "Half-Year Hero",
       "description": "One hundred eighty days without pause. Six months of devotion.",
       "category": "streak",
@@ -811,6 +911,7 @@
       "icon": null
     },
     {
+      "id": "019e18cb-56b1-73dc-a305-57a6f0fa8668",
       "name": "Year-Round Champion",
       "description": "365 consecutive days. An entire year without missing a beat.",
       "category": "streak",
@@ -818,6 +919,7 @@
       "icon": null
     },
     {
+      "id": "019e18cb-56e0-7ca8-9ed2-ed96678d3527",
       "name": "Biennial Titan",
       "description": "Two full years, day after day. There are no words — only reverence.",
       "category": "streak",
@@ -825,6 +927,7 @@
       "icon": null
     },
     {
+      "id": "019e18cb-5228-739c-84d3-dbb7a73199be",
       "name": "First Blood",
       "description": "You named the nameless. The secret never saw you coming.",
       "category": "wins",
@@ -832,6 +935,7 @@
       "icon": null
     },
     {
+      "id": "019e18cb-5258-7060-a200-cb1057498758",
       "name": "Five-Star Detective",
       "description": "Five victories. Your instincts are beginning to sharpen.",
       "category": "wins",
@@ -839,6 +943,7 @@
       "icon": null
     },
     {
+      "id": "019e18cb-5287-725c-a7d6-271dfd0cb395",
       "name": "Pattern Weaver",
       "description": "Twenty wins. You don't just guess — you deduce.",
       "category": "wins",
@@ -846,6 +951,7 @@
       "icon": null
     },
     {
+      "id": "019e18cb-52b7-72c0-95eb-5e2e43fcd2e6",
       "name": "Mind Unlocker",
       "description": "Fifty secrets cracked. Lesser minds would have stopped long ago.",
       "category": "wins",
@@ -853,6 +959,7 @@
       "icon": null
     },
     {
+      "id": "019e18cb-52e7-747c-b7bb-6838db4929f3",
       "name": "The Centurion",
       "description": "A hundred wins. One hundred times the secret has bowed to you.",
       "category": "wins",
@@ -860,6 +967,7 @@
       "icon": null
     },
     {
+      "id": "019e18cb-5318-7048-b2bf-311e25a55c5b",
       "name": "Double Century",
       "description": "Two hundred victories. Your reputation precedes you.",
       "category": "wins",
@@ -867,6 +975,7 @@
       "icon": null
     },
     {
+      "id": "019e18cb-5347-75e0-9da4-c73e52b4619c",
       "name": "Vault Cracker",
       "description": "Five hundred mysteries solved. No secret is safe in your presence.",
       "category": "wins",
@@ -874,6 +983,7 @@
       "icon": null
     },
     {
+      "id": "019e18cb-5378-7668-83fb-f2b298bff303",
       "name": "The Revealer",
       "description": "A thousand identities unmasked. You are the answer they dreaded.",
       "category": "wins",
@@ -881,6 +991,7 @@
       "icon": null
     },
     {
+      "id": "019e18cb-53a8-70d0-8947-945c688319b6",
       "name": "The Omniscient",
       "description": "Five thousand wins. You have become the thing you sought.",
       "category": "wins",
@@ -890,102 +1001,88 @@
   ],
   "daily_challenges": [
     {
+      "id": "019e21a1-de64-7e24-af4d-a501be5bd976",
       "available_on": "2026-05-13",
       "difficulty": 0,
-      "pack_id": "019e219d-274d-70dc-ae6f-aa388273a729",
-      "pack_name": "Daily Challenges",
-      "subject": "pizza"
+      "challenge_id": "019e21a1-8f9d-7568-858c-f872f7524199"
     },
     {
+      "id": "019e21a1-de65-7508-b562-387c9fcbb7f6",
       "available_on": "2026-05-14",
       "difficulty": 0,
-      "pack_id": "019e219d-274d-70dc-ae6f-aa388273a729",
-      "pack_name": "Daily Challenges",
-      "subject": "beach"
+      "challenge_id": "019e21a1-8f9e-7e0c-8a7d-4ac560aa71af"
     },
     {
+      "id": "019e21a1-de65-7694-8581-621086ebc8c3",
       "available_on": "2026-05-15",
       "difficulty": 0,
-      "pack_id": "019e219d-274d-70dc-ae6f-aa388273a729",
-      "pack_name": "Daily Challenges",
-      "subject": "bicycle"
+      "challenge_id": "019e21a1-8f9e-7eac-b848-cfe398df9de4"
     },
     {
+      "id": "019e21a1-de65-76c8-a42a-5b9f6aa31171",
       "available_on": "2026-05-16",
       "difficulty": 0,
-      "pack_id": "019e219d-274d-70dc-ae6f-aa388273a729",
-      "pack_name": "Daily Challenges",
-      "subject": "ice cream"
+      "challenge_id": "019e21a1-8f9e-7ee8-a982-dc9a9fee38eb"
     },
     {
+      "id": "019e21a1-de65-76e8-a6e9-56435ebd7ddd",
       "available_on": "2026-05-17",
       "difficulty": 0,
-      "pack_id": "019e219d-274d-70dc-ae6f-aa388273a729",
-      "pack_name": "Daily Challenges",
-      "subject": "coffee"
+      "challenge_id": "019e21a1-8f9f-706c-babf-7db4b7ecdd0a"
     },
     {
+      "id": "019e21a1-de65-791c-a228-ddd365e61cdf",
       "available_on": "2026-05-18",
       "difficulty": 0,
-      "pack_id": "019e219d-274d-70dc-ae6f-aa388273a729",
-      "pack_name": "Daily Challenges",
-      "subject": "airport"
+      "challenge_id": "019e21a1-8f9f-70bc-9613-cd4e8ec209a1"
     },
     {
+      "id": "019e21a1-de65-7a50-a773-f22a29433cf9",
       "available_on": "2026-05-19",
       "difficulty": 0,
-      "pack_id": "019e219d-274d-70dc-ae6f-aa388273a729",
-      "pack_name": "Daily Challenges",
-      "subject": "camping"
+      "challenge_id": "019e21a1-8f9f-7158-b859-1b2277e62ed2"
     },
     {
+      "id": "019e21a1-de65-7a7c-9fd5-da8d21631f4f",
       "available_on": "2026-05-20",
       "difficulty": 1,
-      "pack_id": "019e219d-274d-70dc-ae6f-aa388273a729",
-      "pack_name": "Daily Challenges",
-      "subject": "sushi"
+      "challenge_id": "019e21a1-8f9f-71ac-8bd3-339799d2dcde"
     },
     {
+      "id": "019e21a1-de65-7a9c-ad40-eaf430ed966e",
       "available_on": "2026-05-21",
       "difficulty": 1,
-      "pack_id": "019e219d-274d-70dc-ae6f-aa388273a729",
-      "pack_name": "Daily Challenges",
-      "subject": "museum"
+      "challenge_id": "019e21a1-8f9f-727c-8fbd-ef20b499739d"
     },
     {
+      "id": "019e21a1-de65-7ab8-ac15-4f7ebb8dc271",
       "available_on": "2026-05-22",
       "difficulty": 1,
-      "pack_id": "019e219d-274d-70dc-ae6f-aa388273a729",
-      "pack_name": "Daily Challenges",
-      "subject": "gardening"
+      "challenge_id": "019e21a1-8f9f-72d8-b414-9d2f2fa9f019"
     },
     {
+      "id": "019e21a1-de65-7ad4-9d8d-edf96012c2e3",
       "available_on": "2026-05-23",
       "difficulty": 1,
-      "pack_id": "019e219d-274d-70dc-ae6f-aa388273a729",
-      "pack_name": "Daily Challenges",
-      "subject": "recycling"
+      "challenge_id": "019e21a1-8faa-76d0-a9e0-fb62aafa3cbb"
     },
     {
+      "id": "019e21a1-de65-7aec-9d39-653042b2dec4",
       "available_on": "2026-05-24",
       "difficulty": 1,
-      "pack_id": "019e219d-274d-70dc-ae6f-aa388273a729",
-      "pack_name": "Daily Challenges",
-      "subject": "library"
+      "challenge_id": "019e21a1-8faa-7844-b8ba-7ebeb7c9de18"
     },
     {
+      "id": "019e21a1-de65-7b08-89a9-4d5ca5947f25",
       "available_on": "2026-05-25",
       "difficulty": 1,
-      "pack_id": "019e219d-274d-70dc-ae6f-aa388273a729",
-      "pack_name": "Daily Challenges",
-      "subject": "cooking"
+      "challenge_id": "019e21a1-8faa-78a0-ab29-5acbaa75df5c"
     },
     {
+      "id": "019e21a1-de65-7b24-8e45-f2b8a2e7a1ee",
       "available_on": "2026-05-26",
       "difficulty": 1,
-      "pack_id": "019e219d-274d-70dc-ae6f-aa388273a729",
-      "pack_name": "Daily Challenges",
-      "subject": "hiking"
+      "challenge_id": "019e21a1-8faa-78f8-9e5f-2a86964cf99c"
     }
   ]
 }

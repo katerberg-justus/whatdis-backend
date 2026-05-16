@@ -12,7 +12,6 @@ services:
       RATELIMIT_STORAGE_URI: redis://redis:6379/1
       CORS_ORIGINS: https://app.whatdis.nl,https://whatdis.nl
       STATIC_CONTENT_SYNC_ON_START: "1"
-      STATIC_CONTENT_SYNC_PRUNE: "1"
     expose:
       - "8000"
     networks:

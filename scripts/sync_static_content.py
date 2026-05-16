@@ -43,6 +43,10 @@ def _require_id(data: dict, kind: str) -> str:
     return resource_id
 
 
+def _optional_id(data: dict) -> str | None:
+    return data.get("id") or None
+
+
 def _apply_changes(instance, values: dict) -> bool:
     changed = False
     for attr, new_value in values.items():
@@ -96,7 +100,10 @@ def _sync_packs(payload: dict) -> tuple[int, int, int, set[str]]:
             touched_pack_ids.add(pack_id)
 
         for challenge_data in pack_data.get("challenges", []):
-            challenge_id = _require_id(challenge_data, "challenge")
+            challenge_id = _optional_id(challenge_data)
+            if challenge_id is None:
+                continue
+
             challenge = db.session.get(Challenge, challenge_id)
             challenge_values = dict(
                 pack_id=pack_id,
@@ -127,7 +134,10 @@ def _sync_achievements(payload: dict) -> tuple[int, int, int]:
     total = 0
 
     for data in payload.get("achievements", []):
-        achievement_id = _require_id(data, "achievement")
+        achievement_id = _optional_id(data)
+        if achievement_id is None:
+            continue
+
         achievement = db.session.get(Achievement, achievement_id)
         values = dict(
             name=data["name"],
@@ -154,7 +164,10 @@ def _sync_daily_challenges(payload: dict) -> tuple[int, int, int]:
     seen_slots: set[tuple[str, int]] = set()
 
     for data in payload.get("daily_challenges", []):
-        slot_id = _require_id(data, "daily_challenge")
+        slot_id = _optional_id(data)
+        if slot_id is None:
+            continue
+
         slot_key = (data["available_on"], data["difficulty"])
         if slot_key in seen_slots:
             raise ValueError(
