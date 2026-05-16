@@ -5,10 +5,18 @@ from flask import request
 from flask_restful import Resource, abort
 from flask_jwt_extended import jwt_required, get_jwt_identity
 import stripe
+from sqlalchemy.exc import IntegrityError
 from api import db, limiter
 from api.common.base_model import utc_isoformat
 from api.models.user import User
+from api.models.user_energy_purchase import UserEnergyPurchase
 from api.models.user_subscription import UserSubscription
+from api.common.energy_boosters import (
+    BOOSTERS,
+    VALID_BOOSTER_IDS,
+    booster_info,
+    stripe_price_id_for_booster,
+)
 from api.common.subscription_plans import (
     DEFAULT_CURRENCY,
     PLANS,
@@ -21,6 +29,9 @@ from api.common.subscription_plans import (
 )
 
 
+WEBHOOK_KIND_NRG_BOOSTER = "nrg_booster"
+
+
 def _active_subscription(user_id: str) -> UserSubscription | None:
     return db.session.execute(
         db.select(UserSubscription).where(
@@ -28,6 +39,27 @@ def _active_subscription(user_id: str) -> UserSubscription | None:
             UserSubscription.status.in_([STATUS_ACTIVE, STATUS_CANCELLED, STATUS_PAST_DUE]),
         ).order_by(UserSubscription.created_at.desc())
     ).scalars().first()
+
+
+def _latest_subscription_for_user(user_id: str) -> UserSubscription | None:
+    return db.session.execute(
+        db.select(UserSubscription).where(UserSubscription.user_id == user_id)
+        .order_by(UserSubscription.created_at.desc())
+    ).scalars().first()
+
+
+def _stripe_customer_for_user(user_id: str) -> str | None:
+    sub = _latest_subscription_for_user(user_id)
+    if sub:
+        return sub.stripe_customer_id
+
+    purchase = db.session.execute(
+        db.select(UserEnergyPurchase).where(
+            UserEnergyPurchase.user_id == user_id,
+            UserEnergyPurchase.stripe_customer_id.isnot(None),
+        ).order_by(UserEnergyPurchase.created_at.desc())
+    ).scalars().first()
+    return purchase.stripe_customer_id if purchase else None
 
 
 def _serialize(sub: UserSubscription) -> dict:
@@ -69,6 +101,20 @@ class SubscriptionPlanListResource(Resource):
 
 # ── Checkout ──────────────────────────────────────────────────────────────────
 
+class NrgBoosterListResource(Resource):
+    decorators = [limiter.limit("60 per minute")]
+
+    def get(self):
+        return [
+            {
+                "booster_id": booster_id,
+                "name": meta["name"],
+                "energy_boost": meta["energy_boost"],
+            }
+            for booster_id, meta in BOOSTERS.items()
+        ], 200
+
+
 class CheckoutSessionResource(Resource):
     decorators = [jwt_required(), limiter.limit("10 per minute")]
 
@@ -100,11 +146,7 @@ class CheckoutSessionResource(Resource):
         stripe.api_key = os.environ.get("STRIPE_SECRET_KEY")
 
         # reuse existing Stripe customer if the user has one
-        existing_sub = db.session.execute(
-            db.select(UserSubscription).where(UserSubscription.user_id == uid)
-            .order_by(UserSubscription.created_at.desc())
-        ).scalar_one_or_none()
-        customer_id = existing_sub.stripe_customer_id if existing_sub else None
+        customer_id = _stripe_customer_for_user(uid)
 
         try:
             params = {
@@ -129,6 +171,69 @@ class CheckoutSessionResource(Resource):
 
 
 # ── Current user's subscription ───────────────────────────────────────────────
+
+class NrgBoosterCheckoutSessionResource(Resource):
+    decorators = [jwt_required(), limiter.limit("10 per minute")]
+
+    def post(self):
+        uid = get_jwt_identity()
+        data = request.get_json(silent=True) or {}
+        booster_id = data.get("booster_id")
+
+        if booster_id not in VALID_BOOSTER_IDS:
+            return {"error": f"Invalid booster_id. Choose from: {', '.join(sorted(VALID_BOOSTER_IDS))}"}, 400
+
+        success_url = data.get("success_url") or os.environ.get("STRIPE_SUCCESS_URL")
+        cancel_url = data.get("cancel_url") or os.environ.get("STRIPE_CANCEL_URL")
+        if not success_url or not cancel_url:
+            return {"error": "success_url and cancel_url are required"}, 400
+
+        user = db.session.get(User, uid)
+        if user is None:
+            return {"error": "User not found"}, 404
+
+        currency = normalize_currency(data.get("currency") or user.currency or DEFAULT_CURRENCY)
+        if currency is None:
+            return {"error": f"Invalid currency. Choose from: {', '.join(sorted(SUPPORTED_CURRENCIES))}"}, 400
+
+        price_id = stripe_price_id_for_booster(booster_id)
+        if not price_id:
+            return {"error": f"Stripe price not configured for {booster_id}"}, 500
+
+        booster = booster_info(booster_id)
+        stripe.api_key = os.environ.get("STRIPE_SECRET_KEY")
+
+        customer_id = _stripe_customer_for_user(uid)
+
+        try:
+            metadata = {
+                "kind": WEBHOOK_KIND_NRG_BOOSTER,
+                "user_id": uid,
+                "booster_id": booster_id,
+                "energy_boost": str(booster["energy_boost"]),
+                "currency": currency,
+            }
+            params = {
+                "mode": "payment",
+                "currency": currency.lower(),
+                "line_items": [{"price": price_id, "quantity": 1}],
+                "success_url": success_url,
+                "cancel_url": cancel_url,
+                "metadata": metadata,
+                "payment_intent_data": {"metadata": metadata},
+                "allow_promotion_codes": True,
+            }
+            if customer_id:
+                params["customer"] = customer_id
+            else:
+                params["customer_email"] = user.email
+
+            session = stripe.checkout.Session.create(**params)
+        except stripe.StripeError as e:
+            return {"error": str(e)}, 502
+
+        return {"checkout_url": session.url}, 200
+
 
 class MeSubscriptionResource(Resource):
     decorators = [jwt_required(), limiter.limit("30 per minute")]
@@ -189,7 +294,8 @@ class StripeWebhookResource(Resource):
         data = event_dict["data"]["object"]
         etype = event_dict["type"]
 
-        if etype == "checkout.session.completed":
+        if etype in ("checkout.session.completed", "checkout.session.async_payment_succeeded"):
+            _handle_nrg_booster_checkout_completed(data)
             _handle_checkout_completed(data)
         elif etype in ("customer.subscription.created", "customer.subscription.updated"):
             _handle_subscription_upsert(data)
@@ -215,6 +321,63 @@ def _handle_checkout_completed(data: dict):
         return
 
     _handle_subscription_upsert(sub_data)
+
+
+def _handle_nrg_booster_checkout_completed(data: dict):
+    metadata = data.get("metadata") or {}
+    if metadata.get("kind") != WEBHOOK_KIND_NRG_BOOSTER:
+        return
+    if data.get("payment_status") != "paid":
+        return
+
+    session_id = data.get("id")
+    if not session_id:
+        print("[webhook] NRG booster checkout is missing a session id")
+        return
+
+    existing = db.session.execute(
+        db.select(UserEnergyPurchase).where(
+            UserEnergyPurchase.stripe_checkout_session_id == session_id
+        )
+    ).scalar_one_or_none()
+    if existing:
+        return
+
+    uid = metadata.get("user_id")
+    booster_id = metadata.get("booster_id")
+    currency = normalize_currency(metadata.get("currency")) or DEFAULT_CURRENCY
+    booster = booster_info(booster_id)
+    if not uid or not booster:
+        print(f"[webhook] Invalid NRG booster metadata for session {session_id}")
+        return
+
+    user = db.session.get(User, uid)
+    if user is None:
+        print(f"[webhook] Could not match NRG booster session {session_id} to a user")
+        return
+
+    energy_boost = int(booster["energy_boost"])
+    user.energy_boost = int(user.energy_boost or 0) + energy_boost
+
+    sub = _active_subscription(user.id)
+    if sub and sub.status in (STATUS_ACTIVE, STATUS_CANCELLED):
+        user.energy_balance = int(user.energy_balance or 0) + energy_boost
+
+    purchase = UserEnergyPurchase(
+        user_id=user.id,
+        stripe_checkout_session_id=session_id,
+        stripe_customer_id=_stripe_id(data.get("customer")),
+        stripe_payment_intent_id=_stripe_id(data.get("payment_intent")),
+        booster_id=booster_id,
+        currency=currency,
+        energy_boost=energy_boost,
+    )
+    db.session.add(purchase)
+
+    try:
+        db.session.commit()
+    except IntegrityError:
+        db.session.rollback()
 
 
 def _handle_subscription_upsert(data: dict, *, fetched: bool = False):
@@ -433,6 +596,12 @@ def _stripe_obj_to_dict(value) -> dict:
     if isinstance(value, dict):
         return value
     return json.loads(str(value))
+
+
+def _stripe_id(value) -> str | None:
+    if isinstance(value, dict):
+        return value.get("id")
+    return value
 
 
 def _datetime_from_timestamp(value) -> datetime | None:

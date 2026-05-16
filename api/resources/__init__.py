@@ -43,6 +43,8 @@ def register_resources(api):
     from api.resources.subscriptions import (
         SubscriptionPlanListResource,
         CheckoutSessionResource,
+        NrgBoosterListResource,
+        NrgBoosterCheckoutSessionResource,
         MeSubscriptionResource,
         StripeWebhookResource,
     )
@@ -93,6 +95,8 @@ def register_resources(api):
     # Subscriptions
     api.add_resource(SubscriptionPlanListResource, "/subscriptions")
     api.add_resource(CheckoutSessionResource,      "/subscriptions/checkout")
+    api.add_resource(NrgBoosterListResource,       "/nrg-boosters")
+    api.add_resource(NrgBoosterCheckoutSessionResource, "/nrg-boosters/checkout")
     api.add_resource(StripeWebhookResource,        "/webhooks/stripe", endpoint="stripe_webhook_v1")
 
     # Achievements
