@@ -101,7 +101,7 @@ class BattleListResource(Resource):
                 or_(Battle.player1_id == uid, Battle.player2_id == uid)
             )
         ).scalars().all()
-        return [_serialize(b, uid) for b in battles], 200
+        return _serialize_many(battles, uid), 200
 
     def post(self):
         uid = get_jwt_identity()
@@ -208,7 +208,7 @@ class BattleResource(Resource):
         uid = get_jwt_identity()
         battle = _get_battle_or_404(battle_id)
         _require_participant(battle, uid)
-        return _serialize(battle, uid, include_guesses=True), 200
+        return _serialize_many([battle], uid, include_guesses=True)[0], 200
 
     def delete(self, battle_id):
         """Player1 cancels a pending battle, or player2 declines."""
@@ -321,23 +321,135 @@ class BattleGuessListResource(Resource):
 
 
 def _serialize(battle: Battle, viewer_id: str, include_guesses: bool = False) -> dict:
-    status_label = {PENDING: "pending", ACTIVE: "active", FINISHED: "finished"}
-    challenge = db.session.get(Challenge, battle.challenge_id)
-    pack = db.session.get(ChallengePack, challenge.pack_id) if challenge else None
-    guess_count = db.session.execute(
-        db.select(func.count(BattleGuess.id)).where(BattleGuess.battle_id == battle.id)
-    ).scalar_one()
-    player1 = {"id": battle.player1.id, "name": battle.player1.name, "username": battle.player1.name}
-    player2 = {"id": battle.player2.id, "name": battle.player2.name, "username": battle.player2.name}
-    pair_filter = or_(
-        (Battle.player1_id == battle.player1_id) & (Battle.player2_id == battle.player2_id),
-        (Battle.player1_id == battle.player2_id) & (Battle.player2_id == battle.player1_id),
-    )
-    head_to_head = dict(db.session.execute(
-        db.select(Battle.winner_id, func.count())
-        .where(pair_filter, Battle.status == FINISHED, Battle.winner_id.is_not(None))
-        .group_by(Battle.winner_id)
+    return _serialize_many([battle], viewer_id, include_guesses=include_guesses)[0]
+
+
+def _serialize_many(
+    battles: list[Battle],
+    viewer_id: str,
+    include_guesses: bool = False,
+) -> list[dict]:
+    if not battles:
+        return []
+
+    battle_ids = [battle.id for battle in battles]
+    challenge_ids = {battle.challenge_id for battle in battles if battle.challenge_id}
+    player_ids = {
+        player_id
+        for battle in battles
+        for player_id in (battle.player1_id, battle.player2_id)
+        if player_id
+    }
+
+    challenges = {
+        challenge.id: challenge
+        for challenge in db.session.execute(
+            db.select(Challenge).where(Challenge.id.in_(challenge_ids))
+        ).scalars().all()
+    } if challenge_ids else {}
+
+    pack_ids = {challenge.pack_id for challenge in challenges.values() if challenge.pack_id}
+    packs = {
+        pack.id: pack
+        for pack in db.session.execute(
+            db.select(ChallengePack).where(ChallengePack.id.in_(pack_ids))
+        ).scalars().all()
+    } if pack_ids else {}
+
+    users = {
+        user.id: user
+        for user in db.session.execute(
+            db.select(User).where(User.id.in_(player_ids))
+        ).scalars().all()
+    } if player_ids else {}
+
+    guess_counts = dict(db.session.execute(
+        db.select(BattleGuess.battle_id, func.count(BattleGuess.id))
+        .where(BattleGuess.battle_id.in_(battle_ids))
+        .group_by(BattleGuess.battle_id)
     ).all())
+
+    head_to_head = _head_to_head_counts(battles)
+
+    guesses_by_battle_id = {}
+    if include_guesses:
+        for guess in db.session.execute(
+            db.select(BattleGuess)
+            .where(BattleGuess.battle_id.in_(battle_ids))
+            .order_by(BattleGuess.battle_id.asc(), BattleGuess.turn_number.asc())
+        ).scalars().all():
+            guesses_by_battle_id.setdefault(guess.battle_id, []).append(guess)
+
+    return [
+        _serialize_with_context(
+            battle,
+            viewer_id,
+            challenges=challenges,
+            packs=packs,
+            users=users,
+            guess_counts=guess_counts,
+            head_to_head=head_to_head,
+            include_guesses=include_guesses,
+            guesses_by_battle_id=guesses_by_battle_id,
+        )
+        for battle in battles
+    ]
+
+
+def _head_to_head_counts(battles: list[Battle]) -> dict:
+    pairs = {_pair_key(battle.player1_id, battle.player2_id) for battle in battles}
+    if not pairs:
+        return {}
+
+    pair_filters = [
+        or_(
+            (Battle.player1_id == first) & (Battle.player2_id == second),
+            (Battle.player1_id == second) & (Battle.player2_id == first),
+        )
+        for first, second in pairs
+    ]
+    rows = db.session.execute(
+        db.select(Battle.player1_id, Battle.player2_id, Battle.winner_id, func.count())
+        .where(
+            or_(*pair_filters),
+            Battle.status == FINISHED,
+            Battle.winner_id.is_not(None),
+        )
+        .group_by(Battle.player1_id, Battle.player2_id, Battle.winner_id)
+    ).all()
+
+    counts = {}
+    for player1_id, player2_id, winner_id, count in rows:
+        key = _pair_key(player1_id, player2_id)
+        counts.setdefault(key, {})[winner_id] = counts.setdefault(key, {}).get(winner_id, 0) + int(count)
+    return counts
+
+
+def _pair_key(player1_id: str, player2_id: str) -> tuple[str, str]:
+    return tuple(sorted((player1_id, player2_id)))
+
+
+def _serialize_with_context(
+    battle: Battle,
+    viewer_id: str,
+    *,
+    challenges: dict,
+    packs: dict,
+    users: dict,
+    guess_counts: dict,
+    head_to_head: dict,
+    include_guesses: bool,
+    guesses_by_battle_id: dict,
+) -> dict:
+    status_label = {PENDING: "pending", ACTIVE: "active", FINISHED: "finished"}
+    challenge = challenges.get(battle.challenge_id)
+    pack = packs.get(challenge.pack_id) if challenge else None
+    guess_count = int(guess_counts.get(battle.id, 0))
+    player1_model = users.get(battle.player1_id)
+    player2_model = users.get(battle.player2_id)
+    player1 = _serialize_player(player1_model, battle.player1_id)
+    player2 = _serialize_player(player2_model, battle.player2_id)
+    pair_scores = head_to_head.get(_pair_key(battle.player1_id, battle.player2_id), {})
     data = {
         "id": battle.id,
         "challenge_id": battle.challenge_id,
@@ -357,14 +469,19 @@ def _serialize(battle: Battle, viewer_id: str, include_guesses: bool = False) ->
         "challenge_pack": {"id": pack.id, "name": pack.name} if pack else None,
         "pack": {"id": pack.id, "name": pack.name} if pack else None,
         "difficulty": DIFFICULTY_LABEL.get(challenge.difficulty, challenge.difficulty) if challenge else None,
-        "player1_score": head_to_head.get(battle.player1_id, 0),
-        "player2_score": head_to_head.get(battle.player2_id, 0),
+        "player1_score": pair_scores.get(battle.player1_id, 0),
+        "player2_score": pair_scores.get(battle.player2_id, 0),
         "created_at": utc_isoformat(battle.created_at),
         "updated_at": utc_isoformat(battle.updated_at),
     }
     if include_guesses:
-        data["guesses"] = [_serialize_guess(g) for g in battle.guesses.all()]
+        data["guesses"] = [_serialize_guess(g) for g in guesses_by_battle_id.get(battle.id, [])]
     return data
+
+
+def _serialize_player(user: User | None, user_id: str) -> dict:
+    name = user.name if user else None
+    return {"id": user_id, "name": name, "username": name}
 
 
 def _serialize_guess(g: BattleGuess) -> dict:

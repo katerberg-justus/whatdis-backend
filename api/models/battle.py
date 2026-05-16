@@ -1,4 +1,4 @@
-from sqlalchemy import ForeignKey
+from sqlalchemy import ForeignKey, Index
 from sqlalchemy.dialects.mysql import CHAR, TINYINT
 from api import db
 from api.common.base_model import BaseModel
@@ -10,6 +10,11 @@ FINISHED = 2  # a player submitted a winning guess
 
 class Battle(BaseModel):
     __tablename__ = "battles"
+    __table_args__ = (
+        Index("ix_battles_player_pair_status", "player1_id", "player2_id", "status"),
+        Index("ix_battles_challenge_status", "challenge_id", "status"),
+        Index("ix_battles_winner", "winner_id"),
+    )
 
     challenge_id = db.Column(CHAR(36), nullable=False, index=True)
 

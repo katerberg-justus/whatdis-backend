@@ -21,7 +21,7 @@ class GameListResource(Resource):
         games = db.session.execute(
             db.select(Game).where(Game.user_id == user_id)
         ).scalars().all()
-        return [_serialize(g) for g in games], 200
+        return _serialize_many(games), 200
 
     def post(self):
         uid = get_jwt_identity()
@@ -76,7 +76,7 @@ class GameResource(Resource):
     def get(self, game_id):
         game = db.get_or_404(Game, game_id)
         _require_owner(game)
-        return _serialize(game), 200
+        return _serialize_many([game])[0], 200
 
     def delete(self, game_id):
         game = db.get_or_404(Game, game_id)
@@ -93,22 +93,101 @@ def _require_owner(game: Game):
 
 
 def _serialize(g: Game) -> dict:
-    guess_count = db.session.execute(
-        db.select(func.count(Guess.id)).where(Guess.game_id == g.id)
-    ).scalar_one()
+    return _serialize_many([g])[0]
+
+
+def _serialize_many(games: list[Game]) -> list[dict]:
+    if not games:
+        return []
+
+    game_ids = [g.id for g in games]
+    challenge_ids = {g.challenge_id for g in games if g.challenge_id}
+
+    guess_stats = {
+        row.game_id: row
+        for row in db.session.execute(
+            db.select(
+                Guess.game_id.label("game_id"),
+                func.count(Guess.id).label("guess_count"),
+                func.min(Guess.created_at).label("first_guess_at"),
+            )
+            .where(Guess.game_id.in_(game_ids))
+            .group_by(Guess.game_id)
+        ).all()
+    }
+
+    challenges = {
+        c.id: c
+        for c in db.session.execute(
+            db.select(Challenge).where(Challenge.id.in_(challenge_ids))
+        ).scalars().all()
+    } if challenge_ids else {}
+
+    pack_ids = {c.pack_id for c in challenges.values() if c.pack_id}
+    packs = {
+        p.id: p
+        for p in db.session.execute(
+            db.select(ChallengePack).where(ChallengePack.id.in_(pack_ids))
+        ).scalars().all()
+    } if pack_ids else {}
+
+    game_dates = {g.created_at.date() for g in games if g.created_at is not None}
+    daily_pairs = set()
+    if challenge_ids and game_dates:
+        daily_pairs = {
+            (row.challenge_id, row.available_on)
+            for row in db.session.execute(
+                db.select(DailyChallenge.challenge_id, DailyChallenge.available_on)
+                .where(
+                    DailyChallenge.challenge_id.in_(challenge_ids),
+                    DailyChallenge.available_on.in_(game_dates),
+                )
+            ).all()
+        }
+
+    next_by_challenge_id, ordinal_by_challenge_id = _pack_progression_maps(pack_ids)
+
+    return [
+        _serialize_with_context(
+            g,
+            guess_stats=guess_stats,
+            challenges=challenges,
+            packs=packs,
+            daily_pairs=daily_pairs,
+            next_by_challenge_id=next_by_challenge_id,
+            ordinal_by_challenge_id=ordinal_by_challenge_id,
+        )
+        for g in games
+    ]
+
+
+def _serialize_with_context(
+    g: Game,
+    *,
+    guess_stats: dict,
+    challenges: dict,
+    packs: dict,
+    daily_pairs: set,
+    next_by_challenge_id: dict,
+    ordinal_by_challenge_id: dict,
+) -> dict:
+    stats = guess_stats.get(g.id)
+    guess_count = int(stats.guess_count) if stats else 0
 
     duration_seconds = None
     if g.completed_at is not None:
-        first_guess_at = db.session.execute(
-            db.select(func.min(Guess.created_at)).where(Guess.game_id == g.id)
-        ).scalar_one()
+        first_guess_at = stats.first_guess_at if stats else None
         if first_guess_at is not None:
             duration_seconds = int((g.completed_at - first_guess_at).total_seconds())
 
-    challenge = db.session.get(Challenge, g.challenge_id)
-    pack = db.session.get(ChallengePack, challenge.pack_id) if challenge else None
-    next_challenge = _next_challenge(challenge)
-    is_daily = _is_daily_game(g, challenge)
+    challenge = challenges.get(g.challenge_id)
+    pack = packs.get(challenge.pack_id) if challenge else None
+    next_challenge = next_by_challenge_id.get(challenge.id) if challenge else None
+    is_daily = (
+        challenge is not None
+        and g.created_at is not None
+        and (challenge.id, g.created_at.date()) in daily_pairs
+    )
 
     return {
         "id": g.id,
@@ -124,9 +203,12 @@ def _serialize(g: Game) -> dict:
         ),
         "pack_id": challenge.pack_id if challenge else None,
         "pack_name": pack.name if pack else None,
-        "position": _ordinal_position(challenge),
+        "position": ordinal_by_challenge_id.get(challenge.id) if challenge else None,
         "difficulty": DIFFICULTY_LABEL.get(challenge.difficulty) if challenge else None,
-        "next_challenge": _serialize_next(next_challenge),
+        "next_challenge": _serialize_next(
+            next_challenge,
+            ordinal_by_challenge_id.get(next_challenge.id) if next_challenge else None,
+        ),
         "created_at": utc_isoformat(g.created_at),
         "updated_at": utc_isoformat(g.updated_at),
     }
@@ -176,12 +258,38 @@ def _next_challenge(challenge: Challenge | None) -> Challenge | None:
     ).scalar_one_or_none()
 
 
-def _serialize_next(challenge: Challenge | None) -> dict | None:
+def _pack_progression_maps(pack_ids: set[str]) -> tuple[dict, dict]:
+    if not pack_ids:
+        return {}, {}
+    from api.resources.challenge_packs import _public_challenge_filters
+
+    public_challenges = db.session.execute(
+        db.select(Challenge)
+        .where(Challenge.pack_id.in_(pack_ids), *_public_challenge_filters())
+        .order_by(Challenge.pack_id.asc(), Challenge.position.asc())
+    ).scalars().all()
+
+    by_pack: dict[str, list[Challenge]] = {}
+    for challenge in public_challenges:
+        by_pack.setdefault(challenge.pack_id, []).append(challenge)
+
+    next_by_challenge_id = {}
+    ordinal_by_challenge_id = {}
+    for pack_challenges in by_pack.values():
+        for index, challenge in enumerate(pack_challenges):
+            ordinal_by_challenge_id[challenge.id] = index + 1
+            if index + 1 < len(pack_challenges):
+                next_by_challenge_id[challenge.id] = pack_challenges[index + 1]
+
+    return next_by_challenge_id, ordinal_by_challenge_id
+
+
+def _serialize_next(challenge: Challenge | None, position: int | None = None) -> dict | None:
     if challenge is None:
         return None
     return {
         "id": challenge.id,
-        "position": _ordinal_position(challenge),
+        "position": position if position is not None else _ordinal_position(challenge),
         "difficulty": DIFFICULTY_LABEL.get(challenge.difficulty),
     }
 

@@ -1,5 +1,5 @@
-from datetime import datetime, timezone, timedelta, date
-from sqlalchemy import func, cast, case, Date as SADate
+from datetime import datetime, timezone, timedelta, date, time
+from sqlalchemy import func, case
 from api import db, cache
 from api.common.limits import (
     ENERGY_DAILY_ANONYMOUS,
@@ -10,6 +10,24 @@ from api.common.limits import (
 )
 
 HINT_ENERGY_COST = 5
+_ENERGY_COUNTER_SCRIPT = """
+local current = redis.call("GET", KEYS[1])
+if not current then
+  current = ARGV[1]
+  redis.call("SET", KEYS[1], current, "EX", ARGV[3])
+end
+current = tonumber(current)
+if current == nil then
+  return {-2, -1}
+end
+local cost = tonumber(ARGV[2])
+if current < cost then
+  return {0, current}
+end
+current = current - cost
+redis.call("SET", KEYS[1], current, "EX", ARGV[3])
+return {1, current}
+"""
 
 
 def _seconds_until_midnight() -> int:
@@ -30,18 +48,21 @@ def _count_todays_guesses(user_id: str) -> int:
     """Energy used today (weighted: hint=5, guess=1)."""
     from api.models.guess import Guess, KIND_HINT
     from api.models.battle_guess import BattleGuess
-    today = date.today()
+    today_start = datetime.combine(date.today(), time.min)
+    tomorrow_start = today_start + timedelta(days=1)
     guess_weight = case((Guess.kind == KIND_HINT, HINT_ENERGY_COST), else_=1)
     solo = db.session.execute(
         db.select(func.coalesce(func.sum(guess_weight), 0)).where(
             Guess.user_id == user_id,
-            cast(Guess.created_at, SADate) == today,
+            Guess.created_at >= today_start,
+            Guess.created_at < tomorrow_start,
         )
     ).scalar_one()
     battle = db.session.execute(
         db.select(func.count()).select_from(BattleGuess).where(
             BattleGuess.user_id == user_id,
-            cast(BattleGuess.created_at, SADate) == today,
+            BattleGuess.created_at >= today_start,
+            BattleGuess.created_at < tomorrow_start,
         )
     ).scalar_one()
     return int(solo) + int(battle)
@@ -49,11 +70,68 @@ def _count_todays_guesses(user_id: str) -> int:
 
 def _cached_user_energy(user_id: str) -> int | None:
     """Return cached remaining energy for a non-subscriber, or None on cache miss."""
+    raw = _raw_get_int(_user_key(user_id))
+    if raw is not None:
+        return raw
     return cache.get(_user_key(user_id))
 
 
 def _set_user_energy_cache(user_id: str, remaining: int) -> None:
-    cache.set(_user_key(user_id), remaining, timeout=_seconds_until_midnight())
+    if not _raw_set_int(_user_key(user_id), remaining, _seconds_until_midnight()):
+        cache.set(_user_key(user_id), remaining, timeout=_seconds_until_midnight())
+
+
+def _redis_backend():
+    return getattr(cache, "cache", None)
+
+
+def _redis_client():
+    backend = _redis_backend()
+    return getattr(backend, "_write_client", None)
+
+
+def _redis_key(key: str) -> str:
+    backend = _redis_backend()
+    if backend is None:
+        return key
+    prefix = backend._get_prefix() if hasattr(backend, "_get_prefix") else getattr(backend, "key_prefix", "")
+    return f"{prefix}{key}"
+
+
+def _raw_get_int(key: str) -> int | None:
+    client = _redis_client()
+    if client is None:
+        return None
+    value = client.get(_redis_key(key))
+    if value is None:
+        return None
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _raw_set_int(key: str, value: int, timeout: int) -> bool:
+    client = _redis_client()
+    if client is None:
+        return False
+    client.setex(_redis_key(key), timeout, int(value))
+    return True
+
+
+def _consume_cached_counter(key: str, initial: int, cost: int, timeout: int) -> tuple[bool, int] | None:
+    client = _redis_client()
+    if client is None:
+        return None
+    result = client.eval(_ENERGY_COUNTER_SCRIPT, 1, _redis_key(key), int(initial), int(cost), int(timeout))
+    allowed, remaining = int(result[0]), int(result[1])
+    if allowed == -2:
+        cache.delete(key)
+        result = client.eval(_ENERGY_COUNTER_SCRIPT, 1, _redis_key(key), int(initial), int(cost), int(timeout))
+        allowed, remaining = int(result[0]), int(result[1])
+    if allowed == -2:
+        return None
+    return allowed == 1, remaining
 
 
 # ── Public API ────────────────────────────────────────────────────────────────
@@ -61,7 +139,10 @@ def _set_user_energy_cache(user_id: str, remaining: int) -> None:
 def get_energy(user, ip: str | None = None, is_subscribed: bool | None = None) -> int:
     """Return current energy without consuming it."""
     if user is None:
-        remaining = cache.get(_anon_key(ip))
+        key = _anon_key(ip)
+        remaining = _raw_get_int(key)
+        if remaining is None:
+            remaining = cache.get(key)
         return ENERGY_DAILY_ANONYMOUS if remaining is None else remaining
     subscribed = is_subscribed if is_subscribed is not None else user.is_subscribed
     if subscribed:
@@ -107,13 +188,18 @@ def consume_energy(user, ip: str | None = None, is_subscribed: bool | None = Non
 
 def _consume_anon(ip: str, cost: int) -> tuple[bool, int]:
     key = _anon_key(ip)
+    timeout = _seconds_until_midnight()
+    consumed = _consume_cached_counter(key, ENERGY_DAILY_ANONYMOUS, cost, timeout)
+    if consumed is not None:
+        return consumed
+
     remaining = cache.get(key)
     if remaining is None:
         remaining = ENERGY_DAILY_ANONYMOUS
     if remaining < cost:
         return False, remaining
     remaining -= cost
-    cache.set(key, remaining, timeout=_seconds_until_midnight())
+    cache.set(key, remaining, timeout=timeout)
     return True, remaining
 
 
@@ -124,9 +210,14 @@ def _consume_user(user, cost: int) -> tuple[bool, int]:
     else:
         daily = ENERGY_DAILY_GUEST if user.is_guest else ENERGY_DAILY_USER
         remaining = max(0, daily - _count_todays_guesses(user.id))
+    timeout = _seconds_until_midnight()
+    consumed = _consume_cached_counter(_user_key(user.id), remaining, cost, timeout)
+    if consumed is not None:
+        return consumed
     if remaining < cost:
         return False, remaining
-    _set_user_energy_cache(user.id, remaining - cost)
+    if not _raw_set_int(_user_key(user.id), remaining - cost, timeout):
+        cache.set(_user_key(user.id), remaining - cost, timeout=timeout)
     return True, remaining - cost
 
 

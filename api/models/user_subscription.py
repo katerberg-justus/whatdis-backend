@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, String, DateTime, ForeignKey
+from sqlalchemy import Boolean, String, DateTime, ForeignKey, Index
 from sqlalchemy.dialects.mysql import CHAR
 from api import db
 from api.common.base_model import BaseModel
@@ -6,6 +6,9 @@ from api.common.base_model import BaseModel
 
 class UserSubscription(BaseModel):
     __tablename__ = "user_subscriptions"
+    __table_args__ = (
+        Index("ix_user_subscriptions_user_status_created", "user_id", "status", "created_at"),
+    )
 
     user_id = db.Column(
         CHAR(36),

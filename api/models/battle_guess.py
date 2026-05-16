@@ -1,4 +1,4 @@
-from sqlalchemy import Text, Integer, ForeignKey
+from sqlalchemy import Text, Integer, ForeignKey, Index
 from sqlalchemy.dialects.mysql import CHAR, TINYINT
 from api import db
 from api.common.base_model import BaseModel
@@ -6,6 +6,10 @@ from api.common.base_model import BaseModel
 
 class BattleGuess(BaseModel):
     __tablename__ = "battle_guesses"
+    __table_args__ = (
+        Index("ix_battle_guesses_battle_turn", "battle_id", "turn_number"),
+        Index("ix_battle_guesses_user_created", "user_id", "created_at"),
+    )
 
     battle_id = db.Column(
         CHAR(36), ForeignKey("battles.id", ondelete="CASCADE"),

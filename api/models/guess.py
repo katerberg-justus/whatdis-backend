@@ -1,4 +1,4 @@
-from sqlalchemy import Text, ForeignKey
+from sqlalchemy import Text, ForeignKey, Index
 from sqlalchemy.dialects.mysql import CHAR, TINYINT, VARCHAR
 from api import db
 from api.common.base_model import BaseModel
@@ -9,6 +9,10 @@ KIND_HINT = "hint"
 
 class Guess(BaseModel):
     __tablename__ = "guesses"
+    __table_args__ = (
+        Index("ix_guesses_game_kind_created", "game_id", "kind", "created_at"),
+        Index("ix_guesses_user_created_kind", "user_id", "created_at", "kind"),
+    )
 
     game_id = db.Column(
         CHAR(36),
