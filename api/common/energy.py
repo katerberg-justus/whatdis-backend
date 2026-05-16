@@ -52,16 +52,24 @@ def get_energy_boost(user) -> int:
 
 
 def _user_key(user) -> str:
-    return f"energy:user:{user.id}:boost:{_energy_boost(user)}"
+    return f"energy:user:{user.id}"
 
 
 def _daily_user_energy(user) -> int:
-    daily = ENERGY_DAILY_GUEST if user.is_guest else ENERGY_DAILY_USER
-    return daily + _energy_boost(user)
+    return ENERGY_DAILY_GUEST if user.is_guest else ENERGY_DAILY_USER
 
 
-def _max_subscriber_energy(user) -> int:
-    return ENERGY_MAX_SUBSCRIBER + _energy_boost(user)
+def _max_subscriber_energy() -> int:
+    return ENERGY_MAX_SUBSCRIBER
+
+
+def _spend_boost(user, cost: int) -> int:
+    """Consume up to `cost` from the user's boost pool. Returns leftover cost."""
+    boost = _energy_boost(user)
+    used = min(boost, cost)
+    if used > 0:
+        user.energy_boost = boost - used
+    return cost - used
 
 
 def _count_todays_guesses(user_id: str) -> int:
@@ -165,27 +173,29 @@ def get_energy(user, ip: str | None = None, is_subscribed: bool | None = None) -
             remaining = cache.get(key)
         return ENERGY_DAILY_ANONYMOUS if remaining is None else remaining
     subscribed = is_subscribed if is_subscribed is not None else user.is_subscribed
+    boost = _energy_boost(user)
     if subscribed:
         today = date.today()
         if user.energy_replenished_date != today:
             current = user.energy_balance or 0
-            return min(current + ENERGY_DAILY_SUBSCRIBER, _max_subscriber_energy(user))
-        return user.energy_balance or 0
+            return min(current + ENERGY_DAILY_SUBSCRIBER, _max_subscriber_energy()) + boost
+        return (user.energy_balance or 0) + boost
     cached = _cached_user_energy(user)
-    if cached is not None:
-        return cached
-    daily = _daily_user_energy(user)
-    remaining = max(0, daily - _count_todays_guesses(user.id))
-    _set_user_energy_cache(user, remaining)
-    return remaining
+    if cached is None:
+        daily = _daily_user_energy(user)
+        cached = max(0, daily - _count_todays_guesses(user.id))
+        _set_user_energy_cache(user, cached)
+    return cached + boost
 
 
 def award_claim_bonus(user) -> int:
     """Award the guest-to-user energy bonus and return the new remaining energy."""
-    remaining = get_energy(user, is_subscribed=False)
-    remaining = min(ENERGY_DAILY_USER + _energy_boost(user), remaining + ENERGY_DAILY_GUEST)
+    cached = _cached_user_energy(user)
+    if cached is None:
+        cached = max(0, _daily_user_energy(user) - _count_todays_guesses(user.id))
+    remaining = min(ENERGY_DAILY_USER, cached + ENERGY_DAILY_GUEST)
     _set_user_energy_cache(user, remaining)
-    return remaining
+    return remaining + _energy_boost(user)
 
 
 def consume_energy(user, ip: str | None = None, is_subscribed: bool | None = None, cost: int = 1) -> tuple[bool, int]:
@@ -226,29 +236,39 @@ def _consume_anon(ip: str, cost: int) -> tuple[bool, int]:
 def _consume_user(user, cost: int) -> tuple[bool, int]:
     cached = _cached_user_energy(user)
     if cached is not None:
-        remaining = cached
+        daily_remaining = cached
     else:
         daily = _daily_user_energy(user)
-        remaining = max(0, daily - _count_todays_guesses(user.id))
+        daily_remaining = max(0, daily - _count_todays_guesses(user.id))
+
+    boost = _energy_boost(user)
+    if boost + daily_remaining < cost:
+        return False, boost + daily_remaining
+
+    remaining_cost = _spend_boost(user, cost)
+    if remaining_cost == 0:
+        return True, _energy_boost(user) + daily_remaining
+
     timeout = _seconds_until_midnight()
-    consumed = _consume_cached_counter(_user_key(user), remaining, cost, timeout)
+    consumed = _consume_cached_counter(_user_key(user), daily_remaining, remaining_cost, timeout)
     if consumed is not None:
-        return consumed
-    if remaining < cost:
-        return False, remaining
-    if not _raw_set_int(_user_key(user), remaining - cost, timeout):
-        cache.set(_user_key(user), remaining - cost, timeout=timeout)
-    return True, remaining - cost
+        allowed, new_daily = consumed
+        return allowed, _energy_boost(user) + new_daily
+    if not _raw_set_int(_user_key(user), daily_remaining - remaining_cost, timeout):
+        cache.set(_user_key(user), daily_remaining - remaining_cost, timeout=timeout)
+    return True, _energy_boost(user) + (daily_remaining - remaining_cost)
 
 
 def _consume_subscriber(user, cost: int) -> tuple[bool, int]:
     _maybe_replenish(user)
+    boost = _energy_boost(user)
     balance = user.energy_balance or 0
-    if balance < cost:
-        return False, balance
-    user.energy_balance = balance - cost
+    if boost + balance < cost:
+        return False, boost + balance
+    remaining_cost = _spend_boost(user, cost)
+    user.energy_balance = balance - remaining_cost
     # caller commits the session together with the guess
-    return True, user.energy_balance
+    return True, _energy_boost(user) + user.energy_balance
 
 
 def _maybe_replenish(user) -> bool:
@@ -256,6 +276,6 @@ def _maybe_replenish(user) -> bool:
     if user.energy_replenished_date == today:
         return False
     current = user.energy_balance or 0
-    user.energy_balance = min(current + ENERGY_DAILY_SUBSCRIBER, _max_subscriber_energy(user))
+    user.energy_balance = min(current + ENERGY_DAILY_SUBSCRIBER, _max_subscriber_energy())
     user.energy_replenished_date = today
     return True
