@@ -8,6 +8,7 @@ from api.models.battle import Battle, PENDING, ACTIVE, FINISHED
 from api.models.battle_guess import BattleGuess
 from api.models.challenge import Challenge
 from api.models.challenge_pack import ChallengePack
+from api.models.friendship import Friendship, ACCEPTED
 from api.models.user import User
 from api.common.challenge_enums import DIFFICULTY_LABEL
 from api.common.response_codes import WIN
@@ -29,6 +30,18 @@ def _other_player(battle: Battle, uid: str) -> str:
     return battle.player2_id if battle.player1_id == uid else battle.player1_id
 
 
+def _are_accepted_friends(user_id: str, other_user_id: str) -> bool:
+    return db.session.execute(
+        db.select(Friendship.id).where(
+            Friendship.status == ACCEPTED,
+            or_(
+                (Friendship.requester_id == user_id) & (Friendship.addressee_id == other_user_id),
+                (Friendship.requester_id == other_user_id) & (Friendship.addressee_id == user_id),
+            ),
+        )
+    ).scalar_one_or_none() is not None
+
+
 def _require_battle_challenge(challenge_id: str, uid: str) -> Challenge:
     challenge = db.session.get(Challenge, challenge_id)
     if challenge is None or not challenge.is_active or challenge.sticker is None:
@@ -44,6 +57,38 @@ def _require_battle_challenge(challenge_id: str, uid: str) -> Challenge:
     if not _has_access(pack, uid):
         abort(403, error="Pack access required")
     return challenge
+
+
+def _completed_battle_challenge_ids(pack_id: str, user_ids: list[str]) -> set:
+    if not user_ids:
+        return set()
+
+    rows = db.session.execute(
+        db.select(Battle.challenge_id)
+        .join(Challenge, Challenge.id == Battle.challenge_id)
+        .where(
+            Challenge.pack_id == pack_id,
+            Challenge.is_active == True,
+            Challenge.sticker.is_not(None),
+            Battle.status == FINISHED,
+            or_(Battle.player1_id.in_(user_ids), Battle.player2_id.in_(user_ids)),
+        )
+    ).scalars().all()
+    return set(rows)
+
+
+def _serialize_battle_picker_challenge(challenge: Challenge, completed_by_participant: bool) -> dict:
+    return {
+        "id": challenge.id,
+        "pack_id": challenge.pack_id,
+        "position": challenge.position,
+        "difficulty": DIFFICULTY_LABEL.get(challenge.difficulty, challenge.difficulty),
+        "is_active": challenge.is_active,
+        "is_locked": False,
+        "battle_completed_by_participant": completed_by_participant,
+        "created_at": utc_isoformat(challenge.created_at),
+        "updated_at": utc_isoformat(challenge.updated_at),
+    }
 
 
 class BattleListResource(Resource):
@@ -115,6 +160,45 @@ class BattleListResource(Resource):
         db.session.add(battle)
         db.session.commit()
         return _serialize(battle, uid), 201
+
+
+class BattleChallengeListResource(Resource):
+    decorators = [jwt_required(), limiter.limit("30 per minute")]
+
+    def get(self, pack_id):
+        uid = get_jwt_identity()
+        opponent_id = request.args.get("opponent_id")
+        if not opponent_id:
+            return {"error": "opponent_id required"}, 400
+
+        pack = db.get_or_404(ChallengePack, pack_id)
+        if not pack.is_battle:
+            abort(404)
+
+        from api.resources.challenge_packs import _has_access
+        if not _has_access(pack, uid):
+            abort(403, error="Pack access required")
+
+        opponent = db.session.get(User, opponent_id)
+        if opponent is None:
+            return {"error": "Opponent not found"}, 404
+        if not _are_accepted_friends(uid, opponent_id):
+            abort(403)
+
+        challenges = db.session.execute(
+            db.select(Challenge)
+            .where(
+                Challenge.pack_id == pack_id,
+                Challenge.is_active == True,
+                Challenge.sticker.is_not(None),
+            )
+            .order_by(Challenge.position)
+        ).scalars().all()
+        completed_ids = _completed_battle_challenge_ids(pack_id, [uid, opponent_id])
+        return [
+            _serialize_battle_picker_challenge(c, c.id in completed_ids)
+            for c in challenges
+        ], 200
 
 
 class BattleResource(Resource):

@@ -23,6 +23,7 @@ def register_resources(api):
     from api.resources.guesses import GuessListResource, GuessResource, HintListResource
     from api.resources.battles import (
         BattleListResource,
+        BattleChallengeListResource,
         BattleResource,
         BattleAcceptResource,
         BattleGuessListResource,
@@ -71,6 +72,7 @@ def register_resources(api):
 
     # Battles
     api.add_resource(BattleListResource,      "/battles")
+    api.add_resource(BattleChallengeListResource, "/battles/challenge-packs/<string:pack_id>/challenges")
     api.add_resource(BattleResource,          "/battles/<string:battle_id>")
     api.add_resource(BattleAcceptResource,    "/battles/<string:battle_id>/accept")
     api.add_resource(BattleGuessListResource, "/battles/<string:battle_id>/guesses")
