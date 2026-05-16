@@ -65,7 +65,12 @@ class GuessListResource(Resource):
             ).scalars().all()
             prior = [{"content": g.content, "response_code": g.response_code} for g in prior_guesses]
 
-            rc, raw = judge_guess(challenge.subject, content, prior)
+            rc, raw = judge_guess(
+                challenge.subject,
+                content,
+                prior,
+                subject_hint=challenge.subject_hint,
+            )
 
         if rc == WIN and game.completed_at is None:
             game.completed_at = datetime.now(timezone.utc)
@@ -121,7 +126,12 @@ class HintListResource(Resource):
         ).scalars().all()
         prior = [{"content": g.content, "response_code": g.response_code} for g in prior_guesses]
 
-        hint_text, raw = give_hint(challenge.subject, prior, language=getattr(user, "language", None))
+        hint_text, raw = give_hint(
+            challenge.subject,
+            prior,
+            language=getattr(user, "language", None),
+            subject_hint=challenge.subject_hint,
+        )
         if not hint_text:
             return {"error": "Failed to generate hint."}, 502
 

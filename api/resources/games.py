@@ -144,6 +144,7 @@ def _serialize_challenge(
         "id": challenge.id,
         "is_daily": is_daily,
         "subject": challenge.subject if completed else None,
+        "subject_hint": challenge.subject_hint if completed else None,
         "sticker": challenge.sticker if completed else None,
     }
 

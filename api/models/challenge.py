@@ -15,6 +15,7 @@ class Challenge(BaseModel):
         nullable=False, index=True,
     )
     subject = db.Column(String(255), nullable=False)
+    subject_hint = db.Column(String(160), nullable=True)
     # 0=easy, 1=medium, 2=hard, 3=impossible
     difficulty = db.Column(TINYINT(unsigned=True), nullable=False, index=True)
     is_active = db.Column(Boolean, nullable=False, default=True, server_default="1")

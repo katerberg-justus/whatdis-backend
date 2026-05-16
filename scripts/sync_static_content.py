@@ -111,6 +111,7 @@ def _sync_packs(payload: dict, prune: bool) -> tuple[int, int, int, set[str]]:
                 changed += 1
 
             challenge.difficulty = challenge_data["difficulty"]
+            challenge.subject_hint = challenge_data.get("subject_hint")
             challenge.is_active = challenge_data.get("is_active", True)
             challenge.sticker = challenge_data.get("sticker")
             challenge.position = challenge_data.get("position", 0)

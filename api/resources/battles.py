@@ -284,7 +284,12 @@ class BattleGuessListResource(Resource):
         prior_guesses = battle.guesses.order_by(BattleGuess.turn_number).all()
         prior = [{"content": g.content, "response_code": g.response_code} for g in prior_guesses]
 
-        rc, raw = judge_guess(challenge.subject, content, prior)
+        rc, raw = judge_guess(
+            challenge.subject,
+            content,
+            prior,
+            subject_hint=challenge.subject_hint,
+        )
 
         next_turn = len(prior_guesses)
 
@@ -346,6 +351,7 @@ def _serialize(battle: Battle, viewer_id: str, include_guesses: bool = False) ->
         "challenge": {
             "id": challenge.id,
             "subject": challenge.subject,
+            "subject_hint": challenge.subject_hint,
             "sticker": challenge.sticker,
         } if challenge and battle.status == FINISHED else None,
         "challenge_pack": {"id": pack.id, "name": pack.name} if pack else None,

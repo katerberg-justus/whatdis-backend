@@ -45,6 +45,7 @@ def _serialize(dc: DailyChallenge, completed: bool = False) -> dict:
         "difficulty": DIFFICULTY_LABEL.get(dc.difficulty, dc.difficulty),
         "completed": completed,
         "subject": dc.challenge.subject if (completed and dc.challenge) else None,
+        "subject_hint": dc.challenge.subject_hint if (completed and dc.challenge) else None,
         "sticker": dc.challenge.sticker if (completed and dc.challenge) else None,
     }
 

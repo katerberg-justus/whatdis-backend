@@ -43,6 +43,7 @@ def _pack_difficulty(pack: ChallengePack, challenges: list[Challenge]) -> int:
 def _challenge_payload(challenge: Challenge) -> dict:
     return {
         "subject": challenge.subject,
+        "subject_hint": challenge.subject_hint,
         "difficulty": int(challenge.difficulty),
         "is_active": bool(challenge.is_active),
         "sticker": challenge.sticker,

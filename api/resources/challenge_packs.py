@@ -17,6 +17,7 @@ from api.common.challenge_enums import (
 
 _CACHE_TTL = 3600  # 1 hour
 _PACKS_CACHE_KEY = "challenge_packs:list:public-stickers:v2"
+MAX_SUBJECT_HINT_LENGTH = 160
 
 
 def _pack_challenges_key(pack_id: str) -> str:
@@ -175,10 +176,23 @@ def _serialize_challenge(c: Challenge, completed: bool = False, is_locked: bool 
         "completed": completed,
         "is_locked": is_locked,
         "subject": c.subject if completed else None,
+        "subject_hint": c.subject_hint if completed else None,
         "sticker": c.sticker if completed else None,
         "created_at": utc_isoformat(c.created_at),
         "updated_at": utc_isoformat(c.updated_at),
     }
+
+
+def _subject_hint_from_payload(data: dict) -> str | None:
+    if "subject_hint" not in data:
+        return None
+    hint = data.get("subject_hint")
+    if hint is None:
+        return None
+    hint = str(hint).strip()
+    if len(hint) > MAX_SUBJECT_HINT_LENGTH:
+        abort(400, error=f"subject_hint must be {MAX_SUBJECT_HINT_LENGTH} characters or fewer")
+    return hint or None
 
 
 # ── Pack list / create ────────────────────────────────────────────────────────
@@ -347,6 +361,7 @@ class ChallengeListResource(Resource):
             return {"error": f"Missing fields: {', '.join(missing)}"}, 400
         if data["difficulty"] not in VALID_DIFFICULTIES:
             return {"error": f"difficulty must be one of {sorted(VALID_DIFFICULTIES)}"}, 400
+        subject_hint = _subject_hint_from_payload(data)
 
         next_position = db.session.execute(
             db.select(func.coalesce(func.max(Challenge.position) + 1, 0))
@@ -355,6 +370,7 @@ class ChallengeListResource(Resource):
         challenge = Challenge(
             pack_id=pack.id,
             subject=data["subject"],
+            subject_hint=subject_hint,
             difficulty=data["difficulty"],
             is_active=data.get("is_active", True),
             sticker=data.get("sticker"),
@@ -390,6 +406,8 @@ class ChallengeResource(Resource):
         data = request.get_json(silent=True) or {}
         if "subject" in data:
             challenge.subject = data["subject"]
+        if "subject_hint" in data:
+            challenge.subject_hint = _subject_hint_from_payload(data)
         if "difficulty" in data:
             if data["difficulty"] not in VALID_DIFFICULTIES:
                 return {"error": f"difficulty must be one of {sorted(VALID_DIFFICULTIES)}"}, 400
