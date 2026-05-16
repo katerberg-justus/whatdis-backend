@@ -387,10 +387,6 @@ def _handle_nrg_booster_checkout_completed(data: dict):
     energy_boost = int(booster["energy_boost"])
     user.energy_boost = int(user.energy_boost or 0) + energy_boost
 
-    sub = _active_subscription(user.id)
-    if sub and sub.status in (STATUS_ACTIVE, STATUS_CANCELLED):
-        user.energy_balance = int(user.energy_balance or 0) + energy_boost
-
     purchase = UserEnergyPurchase(
         user_id=user.id,
         stripe_checkout_session_id=session_id,
