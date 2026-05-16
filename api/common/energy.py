@@ -1,4 +1,5 @@
 from datetime import datetime, timezone, timedelta, date, time
+from zoneinfo import ZoneInfo
 from sqlalchemy import func, case
 from api import db, cache
 from api.common.limits import (
@@ -10,6 +11,11 @@ from api.common.limits import (
 )
 
 HINT_ENERGY_COST = 5
+AMSTERDAM_TZ = ZoneInfo("Europe/Amsterdam")
+
+
+def _today_in_amsterdam() -> date:
+    return datetime.now(AMSTERDAM_TZ).date()
 _ENERGY_COUNTER_SCRIPT = """
 local current = redis.call("GET", KEYS[1])
 if not current then
@@ -31,7 +37,7 @@ return {1, current}
 
 
 def _seconds_until_midnight() -> int:
-    now = datetime.now(timezone.utc)
+    now = datetime.now(AMSTERDAM_TZ)
     midnight = (now + timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
     return max(1, int((midnight - now).total_seconds()))
 
@@ -76,7 +82,7 @@ def _count_todays_guesses(user_id: str) -> int:
     """Energy used today (weighted: hint=5, guess=1)."""
     from api.models.guess import Guess, KIND_HINT
     from api.models.battle_guess import BattleGuess
-    today_start = datetime.combine(date.today(), time.min)
+    today_start = datetime.combine(_today_in_amsterdam(), time.min, tzinfo=AMSTERDAM_TZ)
     tomorrow_start = today_start + timedelta(days=1)
     guess_weight = case((Guess.kind == KIND_HINT, HINT_ENERGY_COST), else_=1)
     solo = db.session.execute(
@@ -175,7 +181,7 @@ def get_energy(user, ip: str | None = None, is_subscribed: bool | None = None) -
     subscribed = is_subscribed if is_subscribed is not None else user.is_subscribed
     boost = _energy_boost(user)
     if subscribed:
-        today = date.today()
+        today = _today_in_amsterdam()
         if user.energy_replenished_date != today:
             current = user.energy_balance or 0
             return min(current + ENERGY_DAILY_SUBSCRIBER, _max_subscriber_energy()) + boost
@@ -272,7 +278,7 @@ def _consume_subscriber(user, cost: int) -> tuple[bool, int]:
 
 
 def _maybe_replenish(user) -> bool:
-    today = date.today()
+    today = _today_in_amsterdam()
     if user.energy_replenished_date == today:
         return False
     current = user.energy_balance or 0
