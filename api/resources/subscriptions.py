@@ -62,6 +62,21 @@ def _stripe_customer_for_user(user_id: str) -> str | None:
     return purchase.stripe_customer_id if purchase else None
 
 
+def _customer_params_for_checkout(user: User, customer_id: str | None) -> dict:
+    if customer_id:
+        return {"customer": customer_id}
+    if user.email:
+        return {"customer_email": user.email}
+    return {}
+
+
+def _is_missing_stripe_customer_error(error: stripe.StripeError, customer_id: str | None) -> bool:
+    if not customer_id:
+        return False
+    message = str(error).lower()
+    return "no such customer" in message or "no such customer" in str(getattr(error, "user_message", "")).lower()
+
+
 def _serialize(sub: UserSubscription) -> dict:
     info = plan_info(sub.plan_id) or {}
     return {
@@ -157,15 +172,20 @@ class CheckoutSessionResource(Resource):
                 "metadata": {"user_id": uid, "currency": currency},
                 "subscription_data": {"metadata": {"user_id": uid, "currency": currency}},
                 "allow_promotion_codes": True,
+                **_customer_params_for_checkout(user, customer_id),
             }
-            if customer_id:
-                params["customer"] = customer_id
-            else:
-                params["customer_email"] = user.email
 
             session = stripe.checkout.Session.create(**params)
         except stripe.StripeError as e:
-            return {"error": str(e)}, 502
+            if not _is_missing_stripe_customer_error(e, customer_id):
+                return {"error": str(e)}, 502
+
+            params.pop("customer", None)
+            params.update(_customer_params_for_checkout(user, None))
+            try:
+                session = stripe.checkout.Session.create(**params)
+            except stripe.StripeError as retry_error:
+                return {"error": str(retry_error)}, 502
 
         return {"checkout_url": session.url}, 200
 
@@ -222,15 +242,23 @@ class NrgBoosterCheckoutSessionResource(Resource):
                 "metadata": metadata,
                 "payment_intent_data": {"metadata": metadata},
                 "allow_promotion_codes": True,
+                **_customer_params_for_checkout(user, customer_id),
             }
-            if customer_id:
-                params["customer"] = customer_id
-            else:
-                params["customer_email"] = user.email
+            if not customer_id:
+                params["customer_creation"] = "always"
 
             session = stripe.checkout.Session.create(**params)
         except stripe.StripeError as e:
-            return {"error": str(e)}, 502
+            if not _is_missing_stripe_customer_error(e, customer_id):
+                return {"error": str(e)}, 502
+
+            params.pop("customer", None)
+            params.update(_customer_params_for_checkout(user, None))
+            params["customer_creation"] = "always"
+            try:
+                session = stripe.checkout.Session.create(**params)
+            except stripe.StripeError as retry_error:
+                return {"error": str(retry_error)}, 502
 
         return {"checkout_url": session.url}, 200
 
