@@ -216,7 +216,7 @@ def _serialize_user(u: User) -> dict:
         "subscription": _serialize_sub(sub) if sub else None,
         "energy": get_energy(u, is_subscribed=is_subscribed),
         "energy_boost": energy_boost,
-        "max_energy": max_energy + energy_boost,
+        "max_energy": max_energy,
         "created_at": utc_isoformat(u.created_at),
         "updated_at": utc_isoformat(u.updated_at),
     }
