@@ -43,11 +43,13 @@ Rules:
 - Guesses may be in any language.
 
 Secret: "{subject}"
+{subject_hint_clause}
 """
 
 _HINT_SYSTEM = (
     "You are a 20-questions host. Give ONE short sentence hinting at the secret "
-    "without naming it or any obvious synonym. Be subtle; build on prior Q&A.{lang_clause} "
+    "without naming it or any obvious synonym. Be subtle; build on prior Q&A."
+    "{lang_clause}{subject_hint_clause} "
     "Secret: \"{subject}\"."
 )
 
@@ -59,9 +61,26 @@ def _get_client() -> OpenAI:
     return _client
 
 
-def judge_guess(subject: str, content: str, prior_guesses: list[dict]) -> tuple[int, str]:
+def _subject_hint_clause(subject_hint: str | None) -> str:
+    return f'\nPrivate clue: "{subject_hint}"' if subject_hint else ""
+
+
+def judge_guess(
+    subject: str,
+    content: str,
+    prior_guesses: list[dict],
+    subject_hint: str | None = None,
+) -> tuple[int, str]:
     """Call OpenAI and return (response_code, raw_model_content)."""
-    messages = [{"role": "system", "content": _SYSTEM.format(subject=subject)}]
+    messages = [
+        {
+            "role": "system",
+            "content": _SYSTEM.format(
+                subject=subject,
+                subject_hint_clause=_subject_hint_clause(subject_hint),
+            ),
+        }
+    ]
     for g in prior_guesses[-3:]:
         messages.append({"role": "user", "content": g["content"]})
         messages.append(
@@ -95,10 +114,24 @@ def judge_guess(subject: str, content: str, prior_guesses: list[dict]) -> tuple[
     return (response_code if response_code in _VALID_RESPONSE_CODES else NO), raw
 
 
-def give_hint(subject: str, prior_guesses: list[dict], language: str | None = None) -> tuple[str, str]:
+def give_hint(
+    subject: str,
+    prior_guesses: list[dict],
+    language: str | None = None,
+    subject_hint: str | None = None,
+) -> tuple[str, str]:
     """Generate a one-sentence hint. Returns (hint_text, raw_model_content)."""
     lang_clause = f" Respond in language code '{language}'." if language else ""
-    messages = [{"role": "system", "content": _HINT_SYSTEM.format(subject=subject, lang_clause=lang_clause)}]
+    messages = [
+        {
+            "role": "system",
+            "content": _HINT_SYSTEM.format(
+                subject=subject,
+                lang_clause=lang_clause,
+                subject_hint_clause=_subject_hint_clause(subject_hint),
+            ),
+        }
+    ]
     for g in prior_guesses[-20:]:
         messages.append({"role": "user", "content": g["content"]})
         messages.append(
