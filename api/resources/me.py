@@ -3,6 +3,7 @@ from flask_restful import Resource, abort
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from sqlalchemy import or_
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import selectinload
 from api import db, limiter
 from api.models.user import User
 from api.models.friendship import Friendship, PENDING, ACCEPTED
@@ -117,7 +118,12 @@ class FriendListResource(Resource):
     def get(self):
         uid = get_jwt_identity()
         rows = db.session.execute(
-            db.select(Friendship).where(
+            db.select(Friendship)
+            .options(
+                selectinload(Friendship.requester),
+                selectinload(Friendship.addressee),
+            )
+            .where(
                 Friendship.status == ACCEPTED,
                 or_(Friendship.requester_id == uid, Friendship.addressee_id == uid),
             )
@@ -163,7 +169,12 @@ class FriendRequestListResource(Resource):
     def get(self):
         uid = get_jwt_identity()
         rows = db.session.execute(
-            db.select(Friendship).where(
+            db.select(Friendship)
+            .options(
+                selectinload(Friendship.requester),
+                selectinload(Friendship.addressee),
+            )
+            .where(
                 Friendship.addressee_id == uid,
                 Friendship.status == PENDING,
             )

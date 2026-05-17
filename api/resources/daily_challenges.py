@@ -3,6 +3,7 @@ from zoneinfo import ZoneInfo
 from flask import request
 from flask_restful import Resource, abort
 from flask_jwt_extended import jwt_required, get_jwt_identity, verify_jwt_in_request
+from sqlalchemy.orm import contains_eager
 from api import db, limiter, cache
 from api.models.daily_challenge import DailyChallenge
 from api.models.challenge import Challenge
@@ -95,6 +96,7 @@ def _daily_slots_for_date(target: date) -> list[DailyChallenge]:
     rows = db.session.execute(
         db.select(DailyChallenge)
         .join(Challenge, DailyChallenge.challenge_id == Challenge.id)
+        .options(contains_eager(DailyChallenge.challenge))
         .where(DailyChallenge.available_on == target)
         .order_by(
             DailyChallenge.difficulty,
