@@ -16,20 +16,22 @@ from api.common.challenge_enums import (
 )
 
 _CACHE_TTL = 3600  # 1 hour
-_PACKS_CACHE_KEY = "challenge_packs:list:public-stickers:v2"
+_PACKS_CACHE_KEY = "challenge_packs:list:public-stickers:v3"
 MAX_SUBJECT_HINT_LENGTH = 160
 
 
 def _pack_challenges_key(pack_id: str) -> str:
-    return f"challenge_packs:challenges:public-stickers:v1:{pack_id}"
+    return f"challenge_packs:challenges:public-stickers:v2:{pack_id}"
 
 
 def _bust_pack_cache(pack_id: str | None = None) -> None:
     cache.delete(_PACKS_CACHE_KEY)
+    cache.delete("challenge_packs:list:public-stickers:v2")
     cache.delete("challenge_packs:list:public-stickers:v1")
     cache.delete("challenge_packs:list")
     if pack_id:
         cache.delete(_pack_challenges_key(pack_id))
+        cache.delete(f"challenge_packs:challenges:public-stickers:v2:{pack_id}")
         cache.delete(f"challenge_packs:challenges:public-stickers:v1:{pack_id}")
         cache.delete(f"challenge_packs:challenges:{pack_id}")
 
@@ -75,7 +77,7 @@ def _require_access(pack: ChallengePack, user_id: str):
 
 
 def _cached_packs() -> tuple[list, dict]:
-    """Return (packs, total_counts) from cache or DB."""
+    """Return (pack payloads, total_counts) from cache or DB."""
     hit = cache.get(_PACKS_CACHE_KEY)
     if hit is not None:
         return hit
@@ -91,13 +93,13 @@ def _cached_packs() -> tuple[list, dict]:
         .where(Challenge.pack_id.in_(pack_ids), *_public_challenge_filters())
         .group_by(Challenge.pack_id)
     ).all()) if pack_ids else {}
-    result = (packs, total_counts)
+    result = ([_pack_payload(pack) for pack in packs], total_counts)
     cache.set(_PACKS_CACHE_KEY, result, timeout=_CACHE_TTL)
     return result
 
 
 def _cached_challenges(pack_id: str) -> list:
-    """Return ordered active challenges for a pack from cache or DB."""
+    """Return ordered active challenge payloads for a pack from cache or DB."""
     key = _pack_challenges_key(pack_id)
     hit = cache.get(key)
     if hit is not None:
@@ -107,8 +109,9 @@ def _cached_challenges(pack_id: str) -> list:
         .where(Challenge.pack_id == pack_id, *_public_challenge_filters())
         .order_by(asc(Challenge.position))
     ).scalars().all()
-    cache.set(key, challenges, timeout=_CACHE_TTL)
-    return challenges
+    payload = [_challenge_payload(challenge) for challenge in challenges]
+    cache.set(key, payload, timeout=_CACHE_TTL)
+    return payload
 
 
 def _completed_ids_for_pack(pack_id: str, user_id: str) -> set:
@@ -137,50 +140,93 @@ def _completed_ids_for_pack(pack_id: str, user_id: str) -> set:
 
 
 def _serialize_pack(
-    p: ChallengePack,
+    p,
     total_count: int | None = None,
     completed_count: int | None = None,
     challenges: list | None = None,
     completed_ids: set | None = None,
 ) -> dict:
     data = {
-        "id": p.id,
-        "name": p.name,
-        "description": p.description,
-        "difficulty": DIFFICULTY_LABEL.get(p.difficulty, p.difficulty),
-        "is_active": p.is_active,
-        "subscription_access": p.subscription_access,
-        "is_exclusive": p.is_exclusive,
-        "is_battle": p.is_battle,
+        "id": _read(p, "id"),
+        "name": _read(p, "name"),
+        "description": _read(p, "description"),
+        "difficulty": DIFFICULTY_LABEL.get(_read(p, "difficulty"), _read(p, "difficulty")),
+        "is_active": _read(p, "is_active"),
+        "subscription_access": _read(p, "subscription_access"),
+        "is_exclusive": _read(p, "is_exclusive"),
+        "is_battle": _read(p, "is_battle"),
         "total_count": total_count if total_count is not None else 0,
         "completed_count": completed_count if completed_count is not None else 0,
-        "created_at": utc_isoformat(p.created_at),
-        "updated_at": utc_isoformat(p.updated_at),
+        "created_at": _read_iso(p, "created_at"),
+        "updated_at": _read_iso(p, "updated_at"),
     }
     if challenges is not None:
         ids = completed_ids or set()
         data["challenges"] = [
-            _serialize_challenge(c, completed=c.id in ids)
+            _serialize_challenge(c, completed=_read(c, "id") in ids)
             for c in challenges
         ]
     return data
 
 
-def _serialize_challenge(c: Challenge, completed: bool = False, is_locked: bool = False) -> dict:
+def _serialize_challenge(c, completed: bool = False, is_locked: bool = False) -> dict:
     return {
-        "id": c.id,
-        "pack_id": c.pack_id,
-        "position": c.position,
-        "difficulty": DIFFICULTY_LABEL.get(c.difficulty, c.difficulty),
-        "is_active": c.is_active,
+        "id": _read(c, "id"),
+        "pack_id": _read(c, "pack_id"),
+        "position": _read(c, "position"),
+        "difficulty": DIFFICULTY_LABEL.get(_read(c, "difficulty"), _read(c, "difficulty")),
+        "is_active": _read(c, "is_active"),
         "completed": completed,
         "is_locked": is_locked,
-        "subject": c.subject if completed else None,
-        "subject_hint": c.subject_hint if completed else None,
-        "sticker": c.sticker if completed else None,
-        "created_at": utc_isoformat(c.created_at),
-        "updated_at": utc_isoformat(c.updated_at),
+        "subject": _read(c, "subject") if completed else None,
+        "subject_hint": _read(c, "subject_hint") if completed else None,
+        "sticker": _read(c, "sticker") if completed else None,
+        "created_at": _read_iso(c, "created_at"),
+        "updated_at": _read_iso(c, "updated_at"),
     }
+
+
+def _pack_payload(pack: ChallengePack) -> dict:
+    return {
+        "id": pack.id,
+        "name": pack.name,
+        "description": pack.description,
+        "difficulty": pack.difficulty,
+        "is_active": pack.is_active,
+        "subscription_access": pack.subscription_access,
+        "is_exclusive": pack.is_exclusive,
+        "is_battle": pack.is_battle,
+        "created_at": utc_isoformat(pack.created_at),
+        "updated_at": utc_isoformat(pack.updated_at),
+    }
+
+
+def _challenge_payload(challenge: Challenge) -> dict:
+    return {
+        "id": challenge.id,
+        "pack_id": challenge.pack_id,
+        "position": challenge.position,
+        "difficulty": challenge.difficulty,
+        "is_active": challenge.is_active,
+        "subject": challenge.subject,
+        "subject_hint": challenge.subject_hint,
+        "sticker": challenge.sticker,
+        "created_at": utc_isoformat(challenge.created_at),
+        "updated_at": utc_isoformat(challenge.updated_at),
+    }
+
+
+def _read(item, field: str):
+    if isinstance(item, dict):
+        return item.get(field)
+    return getattr(item, field)
+
+
+def _read_iso(item, field: str) -> str | None:
+    value = _read(item, field)
+    if isinstance(value, str) or value is None:
+        return value
+    return utc_isoformat(value)
 
 
 def _subject_hint_from_payload(data: dict) -> str | None:
@@ -206,7 +252,7 @@ class ChallengePackListResource(Resource):
         if not packs:
             return [], 200
 
-        pack_ids = [p.id for p in packs]
+        pack_ids = [p["id"] for p in packs]
 
         # Completed challenges per pack for this user — Games + finished Battles
         game_pairs = db.session.execute(
@@ -250,17 +296,18 @@ class ChallengePackListResource(Resource):
 
         result = []
         for p in packs:
-            if p.is_exclusive:
-                has_access = p.id in granted_pack_ids
-            elif not p.subscription_access:
+            pack_id = p["id"]
+            if p["is_exclusive"]:
+                has_access = pack_id in granted_pack_ids
+            elif not p["subscription_access"]:
                 has_access = True
             else:
-                has_access = p.id in granted_pack_ids or is_subscribed
+                has_access = pack_id in granted_pack_ids or is_subscribed
             result.append({
                 **_serialize_pack(
                     p,
-                    total_count=total_counts.get(p.id, 0),
-                    completed_count=completed_counts.get(p.id, 0),
+                    total_count=total_counts.get(pack_id, 0),
+                    completed_count=completed_counts.get(pack_id, 0),
                 ),
                 "is_locked": not has_access,
             })
@@ -349,7 +396,7 @@ class ChallengeListResource(Resource):
         challenges = _cached_challenges(pack_id)
         completed_ids = _completed_ids_for_pack(pack_id, uid)
         return [
-            _serialize_challenge(c, completed=c.id in completed_ids)
+            _serialize_challenge(c, completed=c["id"] in completed_ids)
             for c in challenges
         ], 200
 

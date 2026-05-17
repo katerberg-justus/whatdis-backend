@@ -254,9 +254,11 @@ def _clear_static_cache(touched_pack_ids: set[str], achievements_changed: bool) 
         cache.delete("challenge_packs:list")
         cache.delete("challenge_packs:list:public-stickers:v1")
         cache.delete("challenge_packs:list:public-stickers:v2")
+        cache.delete("challenge_packs:list:public-stickers:v3")
         for pack_id in touched_pack_ids:
             cache.delete(f"challenge_packs:challenges:{pack_id}")
             cache.delete(f"challenge_packs:challenges:public-stickers:v1:{pack_id}")
+            cache.delete(f"challenge_packs:challenges:public-stickers:v2:{pack_id}")
     if achievements_changed:
         cache.delete("achievements:definitions:v1")
 

@@ -12,14 +12,36 @@ from api.models.challenge import Challenge
 from api.models.challenge_pack import ChallengePack
 from api.models.daily_challenge import DailyChallenge
 
+DEFAULT_HISTORY_LIMIT = 100
+MAX_HISTORY_LIMIT = 100
+
 
 class GameListResource(Resource):
     decorators = [jwt_required(), limiter.limit("30 per minute")]
 
     def get(self):
         user_id = get_jwt_identity()
+        limit, offset_or_error = _pagination_args()
+        if isinstance(offset_or_error, dict):
+            return offset_or_error, 400
+        offset = offset_or_error
+
+        completed, completed_error = _completed_arg()
+        if completed_error:
+            return completed_error, 400
+
+        filters = [Game.user_id == user_id]
+        if completed is True:
+            filters.append(Game.completed_at.is_not(None))
+        elif completed is False:
+            filters.append(Game.completed_at.is_(None))
+
         games = db.session.execute(
-            db.select(Game).where(Game.user_id == user_id)
+            db.select(Game)
+            .where(*filters)
+            .order_by(Game.updated_at.desc(), Game.created_at.desc())
+            .limit(limit)
+            .offset(offset)
         ).scalars().all()
         return _serialize_many(games), 200
 
@@ -90,6 +112,31 @@ def _require_owner(game: Game):
     if get_jwt_identity() != game.user_id:
         from flask_restful import abort
         abort(403)
+
+
+def _pagination_args() -> tuple[int, int | dict]:
+    try:
+        limit = int(request.args.get("limit", DEFAULT_HISTORY_LIMIT))
+        offset = int(request.args.get("offset", 0))
+    except (TypeError, ValueError):
+        return DEFAULT_HISTORY_LIMIT, {"error": "limit and offset must be integers"}
+    if limit < 1:
+        return DEFAULT_HISTORY_LIMIT, {"error": "limit must be at least 1"}
+    if offset < 0:
+        return DEFAULT_HISTORY_LIMIT, {"error": "offset must be at least 0"}
+    return min(limit, MAX_HISTORY_LIMIT), offset
+
+
+def _completed_arg() -> tuple[bool | None, dict | None]:
+    raw = request.args.get("completed")
+    if raw is None:
+        return None, None
+    value = raw.strip().lower()
+    if value in ("true", "1", "yes"):
+        return True, None
+    if value in ("false", "0", "no"):
+        return False, None
+    return None, {"error": "completed must be true or false"}
 
 
 def _serialize(g: Game) -> dict:

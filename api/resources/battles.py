@@ -16,6 +16,9 @@ from api.common.energy import consume_energy
 from api.common.achievements import check_after_battle_guess
 from api.services.ai import judge_guess
 
+DEFAULT_HISTORY_LIMIT = 100
+MAX_HISTORY_LIMIT = 100
+
 
 def _get_battle_or_404(battle_id: str) -> Battle:
     return db.get_or_404(Battle, battle_id)
@@ -96,10 +99,27 @@ class BattleListResource(Resource):
 
     def get(self):
         uid = get_jwt_identity()
+        limit, offset_or_error = _pagination_args()
+        if isinstance(offset_or_error, dict):
+            return offset_or_error, 400
+        offset = offset_or_error
+
+        completed, completed_error = _completed_arg()
+        if completed_error:
+            return completed_error, 400
+
+        filters = [or_(Battle.player1_id == uid, Battle.player2_id == uid)]
+        if completed is True:
+            filters.append(Battle.status == FINISHED)
+        elif completed is False:
+            filters.append(Battle.status != FINISHED)
+
         battles = db.session.execute(
-            db.select(Battle).where(
-                or_(Battle.player1_id == uid, Battle.player2_id == uid)
-            )
+            db.select(Battle)
+            .where(*filters)
+            .order_by(Battle.updated_at.desc(), Battle.created_at.desc())
+            .limit(limit)
+            .offset(offset)
         ).scalars().all()
         return _serialize_many(battles, uid), 200
 
@@ -199,6 +219,31 @@ class BattleChallengeListResource(Resource):
             _serialize_battle_picker_challenge(c, c.id in completed_ids)
             for c in challenges
         ], 200
+
+
+def _pagination_args() -> tuple[int, int | dict]:
+    try:
+        limit = int(request.args.get("limit", DEFAULT_HISTORY_LIMIT))
+        offset = int(request.args.get("offset", 0))
+    except (TypeError, ValueError):
+        return DEFAULT_HISTORY_LIMIT, {"error": "limit and offset must be integers"}
+    if limit < 1:
+        return DEFAULT_HISTORY_LIMIT, {"error": "limit must be at least 1"}
+    if offset < 0:
+        return DEFAULT_HISTORY_LIMIT, {"error": "offset must be at least 0"}
+    return min(limit, MAX_HISTORY_LIMIT), offset
+
+
+def _completed_arg() -> tuple[bool | None, dict | None]:
+    raw = request.args.get("completed")
+    if raw is None:
+        return None, None
+    value = raw.strip().lower()
+    if value in ("true", "1", "yes"):
+        return True, None
+    if value in ("false", "0", "no"):
+        return False, None
+    return None, {"error": "completed must be true or false"}
 
 
 class BattleResource(Resource):
