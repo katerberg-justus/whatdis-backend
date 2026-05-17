@@ -1,6 +1,6 @@
 from flask import Flask, request as flask_request
 from flask_restful import Api as RestfulApi
-from flask_jwt_extended import JWTManager
+from flask_jwt_extended import JWTManager, get_jwt_identity, verify_jwt_in_request
 from flask_jwt_extended.exceptions import CSRFError
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
@@ -8,6 +8,7 @@ from flask_caching import Cache
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_cors import CORS
+from werkzeug.middleware.proxy_fix import ProxyFix
 from datetime import datetime, timezone
 from dotenv import load_dotenv
 import os
@@ -18,8 +19,21 @@ db = SQLAlchemy()
 migrate = Migrate()
 jwt = JWTManager()
 cache = Cache()
-limiter = Limiter(key_func=get_remote_address)
 cors = CORS()
+
+
+def rate_limit_identity() -> str:
+    try:
+        verify_jwt_in_request(optional=True)
+        user_id = get_jwt_identity()
+        if user_id:
+            return f"user:{user_id}"
+    except Exception:
+        pass
+    return f"ip:{get_remote_address()}"
+
+
+limiter = Limiter(key_func=rate_limit_identity)
 
 
 class Api(RestfulApi):
@@ -37,6 +51,7 @@ class Api(RestfulApi):
 
 def create_app(config=None):
     app = Flask(__name__, instance_relative_config=True)
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 
     app.config["SECRET_KEY"] = os.environ["SECRET_KEY"]
     db_host = "localhost" if os.environ.get("FLASK_ENV") == "development" else os.environ['DB_HOST']
