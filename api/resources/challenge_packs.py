@@ -15,7 +15,7 @@ from api.common.challenge_enums import (
     VALID_PACK_DIFFICULTIES, VALID_DIFFICULTIES, DIFFICULTY_LABEL,
 )
 
-_CACHE_TTL = 3600  # 1 hour
+_STATIC_CACHE_TTL = 6 * 3600
 _PACKS_CACHE_KEY = "challenge_packs:list:public-stickers:v3"
 MAX_SUBJECT_HINT_LENGTH = 160
 
@@ -77,7 +77,7 @@ def _require_access(pack: ChallengePack, user_id: str):
 
 
 def _cached_packs() -> tuple[list, dict]:
-    """Return (pack payloads, total_counts) from cache or DB."""
+    """Return cached public pack definitions and public challenge counts."""
     hit = cache.get(_PACKS_CACHE_KEY)
     if hit is not None:
         return hit
@@ -94,12 +94,12 @@ def _cached_packs() -> tuple[list, dict]:
         .group_by(Challenge.pack_id)
     ).all()) if pack_ids else {}
     result = ([_pack_payload(pack) for pack in packs], total_counts)
-    cache.set(_PACKS_CACHE_KEY, result, timeout=_CACHE_TTL)
+    cache.set(_PACKS_CACHE_KEY, result, timeout=_STATIC_CACHE_TTL)
     return result
 
 
 def _cached_challenges(pack_id: str) -> list:
-    """Return ordered active challenge payloads for a pack from cache or DB."""
+    """Return cached public challenge definitions for a pack."""
     key = _pack_challenges_key(pack_id)
     hit = cache.get(key)
     if hit is not None:
@@ -110,8 +110,62 @@ def _cached_challenges(pack_id: str) -> list:
         .order_by(asc(Challenge.position))
     ).scalars().all()
     payload = [_challenge_payload(challenge) for challenge in challenges]
-    cache.set(key, payload, timeout=_CACHE_TTL)
+    cache.set(key, payload, timeout=_STATIC_CACHE_TTL)
     return payload
+
+
+def _pack_completion_counts(pack_ids: list[str], user_id: str) -> dict:
+    game_pairs = db.session.execute(
+        db.select(Challenge.pack_id, Challenge.id)
+        .join(Game, Game.challenge_id == Challenge.id)
+        .where(
+            Challenge.pack_id.in_(pack_ids),
+            *_public_challenge_filters(),
+            Game.user_id == user_id,
+            Game.completed_at.isnot(None),
+        )
+    ).all()
+    battle_pairs = db.session.execute(
+        db.select(Challenge.pack_id, Challenge.id)
+        .join(Battle, Battle.challenge_id == Challenge.id)
+        .where(
+            Challenge.pack_id.in_(pack_ids),
+            *_public_challenge_filters(),
+            Battle.status == FINISHED,
+            or_(Battle.player1_id == user_id, Battle.player2_id == user_id),
+        )
+    ).all()
+
+    counts: dict = {}
+    for pack_id, _challenge_id in set(game_pairs) | set(battle_pairs):
+        counts[pack_id] = counts.get(pack_id, 0) + 1
+    return counts
+
+
+def _pack_access_by_id(packs: list[dict], user_id: str) -> dict:
+    pack_ids = [pack["id"] for pack in packs]
+    granted_pack_ids = {
+        row[0] for row in db.session.execute(
+            db.select(UserPackAccess.pack_id)
+            .where(UserPackAccess.user_id == user_id, UserPackAccess.pack_id.in_(pack_ids))
+        ).all()
+    }
+
+    from api.resources.subscriptions import _active_subscription
+    from api.common.subscription_plans import STATUS_ACTIVE, STATUS_CANCELLED
+    sub = _active_subscription(user_id)
+    is_subscribed = sub is not None and sub.status in (STATUS_ACTIVE, STATUS_CANCELLED)
+
+    access = {}
+    for pack in packs:
+        pack_id = pack["id"]
+        if pack["is_exclusive"]:
+            access[pack_id] = pack_id in granted_pack_ids
+        elif not pack["subscription_access"]:
+            access[pack_id] = True
+        else:
+            access[pack_id] = pack_id in granted_pack_ids or is_subscribed
+    return access
 
 
 def _completed_ids_for_pack(pack_id: str, user_id: str) -> set:
@@ -253,63 +307,22 @@ class ChallengePackListResource(Resource):
             return [], 200
 
         pack_ids = [p["id"] for p in packs]
+        completed_counts = _pack_completion_counts(pack_ids, uid)
+        access_by_id = _pack_access_by_id(packs, uid)
 
         # Completed challenges per pack for this user — Games + finished Battles
-        game_pairs = db.session.execute(
-            db.select(Challenge.pack_id, Challenge.id)
-            .join(Game, Game.challenge_id == Challenge.id)
-            .where(
-                Challenge.pack_id.in_(pack_ids),
-                *_public_challenge_filters(),
-                Game.user_id == uid,
-                Game.completed_at.isnot(None),
-            )
-        ).all()
-        battle_pairs = db.session.execute(
-            db.select(Challenge.pack_id, Challenge.id)
-            .join(Battle, Battle.challenge_id == Challenge.id)
-            .where(
-                Challenge.pack_id.in_(pack_ids),
-                *_public_challenge_filters(),
-                Battle.status == FINISHED,
-                or_(Battle.player1_id == uid, Battle.player2_id == uid),
-            )
-        ).all()
-        completed_pairs = set(game_pairs) | set(battle_pairs)
-        completed_counts: dict = {}
-        for pack_id_, _challenge_id in completed_pairs:
-            completed_counts[pack_id_] = completed_counts.get(pack_id_, 0) + 1
-
         # Packs the user has explicit access to — 1 query
-        granted_pack_ids = {
-            row[0] for row in db.session.execute(
-                db.select(UserPackAccess.pack_id)
-                .where(UserPackAccess.user_id == uid, UserPackAccess.pack_id.in_(pack_ids))
-            ).all()
-        }
-
         # Subscription check — 1 query
-        from api.resources.subscriptions import _active_subscription
-        from api.common.subscription_plans import STATUS_ACTIVE, STATUS_CANCELLED
-        sub = _active_subscription(uid)
-        is_subscribed = sub is not None and sub.status in (STATUS_ACTIVE, STATUS_CANCELLED)
-
         result = []
         for p in packs:
             pack_id = p["id"]
-            if p["is_exclusive"]:
-                has_access = pack_id in granted_pack_ids
-            elif not p["subscription_access"]:
-                has_access = True
-            else:
-                has_access = pack_id in granted_pack_ids or is_subscribed
             result.append({
                 **_serialize_pack(
                     p,
                     total_count=total_counts.get(pack_id, 0),
                     completed_count=completed_counts.get(pack_id, 0),
                 ),
-                "is_locked": not has_access,
+                "is_locked": not access_by_id.get(pack_id, False),
             })
         return result, 200
 
