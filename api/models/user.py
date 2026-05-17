@@ -23,6 +23,13 @@ class User(BaseModel):
     # Consecutive-day streak tracking
     current_streak           = db.Column(Integer, nullable=False, default=0, server_default="0")
     streak_updated_date      = db.Column(Date, nullable=True)
+    # Lifetime achievement counters. Keep these denormalized so awarding
+    # achievements does not need aggregate scans on the guess write path.
+    total_guess_count        = db.Column(Integer, nullable=False, default=0, server_default="0")
+    win_count                = db.Column(Integer, nullable=False, default=0, server_default="0")
+    battle_win_count         = db.Column(Integer, nullable=False, default=0, server_default="0")
+    battle_played_count      = db.Column(Integer, nullable=False, default=0, server_default="0")
+    daily_completion_count   = db.Column(Integer, nullable=False, default=0, server_default="0")
 
     games = db.relationship("Game", back_populates="user", lazy="dynamic")
     guesses = db.relationship("Guess", back_populates="user", lazy="dynamic")

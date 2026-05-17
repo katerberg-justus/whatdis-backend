@@ -4,67 +4,18 @@ All functions are fire-and-forget: errors are swallowed so they never
 block the guess response.
 """
 from datetime import date
-from sqlalchemy import func, cast, select
-from sqlalchemy.dialects.mysql import CHAR
+from sqlalchemy import select
 from api import db
 
 
-def _count_guesses(user_id: str) -> int:
-    from api.models.guess import Guess
-    from api.models.battle_guess import BattleGuess
-    solo = db.session.execute(
-        select(func.count()).select_from(Guess).where(Guess.user_id == user_id)
-    ).scalar_one()
-    battle = db.session.execute(
-        select(func.count()).select_from(BattleGuess).where(BattleGuess.user_id == user_id)
-    ).scalar_one()
-    return solo + battle
+def _counter(user, field: str) -> int:
+    return int(getattr(user, field, 0) or 0)
 
 
-def _count_wins(user_id: str) -> int:
-    from api.models.game import Game
-    return db.session.execute(
-        select(func.count()).select_from(Game).where(
-            Game.user_id == user_id,
-            Game.completed_at.isnot(None),
-        )
-    ).scalar_one()
-
-
-def _count_battles_played(user_id: str) -> int:
-    from api.models.battle import Battle, FINISHED
-    from sqlalchemy import or_
-    return db.session.execute(
-        select(func.count()).select_from(Battle).where(
-            or_(Battle.player1_id == user_id, Battle.player2_id == user_id),
-            Battle.status == FINISHED,
-        )
-    ).scalar_one()
-
-
-def _count_battle_wins(user_id: str) -> int:
-    from api.models.battle import Battle
-    return db.session.execute(
-        select(func.count()).select_from(Battle).where(
-            Battle.winner_id == user_id,
-        )
-    ).scalar_one()
-
-
-def _count_daily_completions(user_id: str) -> int:
-    from api.models.game import Game
-    from api.models.daily_challenge import DailyChallenge
-    from api.models.challenge import Challenge
-    daily_challenge_ids = select(Challenge.id).join(
-        DailyChallenge, DailyChallenge.challenge_id == Challenge.id
-    )
-    return db.session.execute(
-        select(func.count()).select_from(Game).where(
-            Game.user_id == user_id,
-            Game.completed_at.isnot(None),
-            Game.challenge_id.in_(daily_challenge_ids),
-        )
-    ).scalar_one()
+def _increment_counter(user, field: str, amount: int = 1) -> int:
+    value = _counter(user, field) + amount
+    setattr(user, field, value)
+    return value
 
 
 def _update_streak(user) -> None:
@@ -126,11 +77,11 @@ def check_after_guess(user, won: bool = False) -> list:
         _update_streak(user)
 
         newly: list = []
-        guess_count = _count_guesses(user_id)
+        guess_count = _increment_counter(user, "total_guess_count")
         newly += _award_category(user_id, "guesses", guess_count)
 
         if won:
-            win_count = _count_wins(user_id)
+            win_count = _increment_counter(user, "win_count")
             newly += _award_category(user_id, "wins", win_count)
 
         newly += _award_category(user_id, "streak", user.current_streak or 0)
@@ -142,21 +93,23 @@ def check_after_guess(user, won: bool = False) -> list:
         return []
 
 
-def check_after_battle_guess(user, won: bool = False) -> list:
+def check_after_battle_guess(user, won: bool = False, opponent=None) -> list:
     """Call after a battle guess is committed. Returns newly-earned achievements."""
     try:
         user_id = user.id
         _update_streak(user)
 
         newly: list = []
-        guess_count = _count_guesses(user_id)
+        guess_count = _increment_counter(user, "total_guess_count")
         newly += _award_category(user_id, "guesses", guess_count)
 
         if won:
-            battle_wins = _count_battle_wins(user_id)
+            battle_wins = _increment_counter(user, "battle_win_count")
             newly += _award_category(user_id, "battle_won", battle_wins)
-            battles_played = _count_battles_played(user_id)
+            battles_played = _increment_counter(user, "battle_played_count")
             newly += _award_category(user_id, "battle_played", battles_played)
+            if opponent is not None:
+                _increment_counter(opponent, "battle_played_count")
 
         newly += _award_category(user_id, "streak", user.current_streak or 0)
 
@@ -170,9 +123,16 @@ def check_after_battle_guess(user, won: bool = False) -> list:
 def check_after_daily(user) -> list:
     """Call after a daily challenge game is completed. Returns newly-earned achievements."""
     try:
-        newly = _award_category(user.id, "daily", _count_daily_completions(user.id))
+        daily_count = _increment_counter(user, "daily_completion_count")
+        newly = _award_category(user.id, "daily", daily_count)
         db.session.flush()
         return _serialize_new(newly)
     except Exception:
         db.session.rollback()
         return []
+
+
+def record_hint(user) -> None:
+    """Record a hint in the lifetime guess counter without awarding immediately."""
+    if user is not None:
+        _increment_counter(user, "total_guess_count")

@@ -12,7 +12,7 @@ from api.models.challenge import Challenge
 from api.models.user import User
 from api.common.energy import consume_energy, HINT_ENERGY_COST
 from api.common.response_codes import WIN
-from api.common.achievements import check_after_guess
+from api.common.achievements import check_after_guess, record_hint
 from api.resources.subscriptions import _active_subscription
 from api.common.subscription_plans import STATUS_ACTIVE, STATUS_CANCELLED
 from api.services.ai import (
@@ -86,7 +86,8 @@ class GuessListResource(Resource):
                     subject_hint=challenge.subject_hint,
                 )
 
-        if rc == WIN and game.completed_at is None:
+        completed_now = rc == WIN and game.completed_at is None
+        if completed_now:
             game.completed_at = datetime.now(timezone.utc)
 
         guess = Guess(
@@ -103,7 +104,7 @@ class GuessListResource(Resource):
 
         new_achievements: list = []
         if user:
-            new_achievements = check_after_guess(user, won=(rc == WIN))
+            new_achievements = check_after_guess(user, won=completed_now)
             db.session.commit()
 
         return {
@@ -167,6 +168,7 @@ class HintListResource(Resource):
             raw_response=raw,
         )
         db.session.add(hint)
+        record_hint(user)
         db.session.commit()
 
         return {**_serialize(hint), "energy_remaining": energy_remaining}, 201

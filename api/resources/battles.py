@@ -356,7 +356,8 @@ class BattleGuessListResource(Resource):
             battle.current_turn_id = _other_player(battle, uid)
 
         db.session.commit()
-        new_achievements = check_after_battle_guess(user, won=(rc == WIN))
+        opponent = db.session.get(User, _other_player(battle, uid)) if rc == WIN else None
+        new_achievements = check_after_battle_guess(user, won=(rc == WIN), opponent=opponent)
         db.session.commit()
         return {
             **_serialize_guess(guess),
