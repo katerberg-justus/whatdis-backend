@@ -14,6 +14,10 @@ class Battle(BaseModel):
         Index("ix_battles_player_pair_status", "player1_id", "player2_id", "status"),
         Index("ix_battles_challenge_status", "challenge_id", "status"),
         Index("ix_battles_winner", "winner_id"),
+        Index("ix_battles_player1_updated_created", "player1_id", "updated_at", "created_at"),
+        Index("ix_battles_player2_updated_created", "player2_id", "updated_at", "created_at"),
+        Index("ix_battles_player1_status_updated_created", "player1_id", "status", "updated_at", "created_at"),
+        Index("ix_battles_player2_status_updated_created", "player2_id", "status", "updated_at", "created_at"),
     )
 
     challenge_id = db.Column(CHAR(36), nullable=False, index=True)

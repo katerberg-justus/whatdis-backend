@@ -9,6 +9,8 @@ class Game(BaseModel):
     __table_args__ = (
         Index("ix_games_user_challenge", "user_id", "challenge_id"),
         Index("ix_games_user_completed_challenge", "user_id", "completed_at", "challenge_id"),
+        Index("ix_games_user_updated_created", "user_id", "updated_at", "created_at"),
+        Index("ix_games_user_completed_updated_created", "user_id", "completed_at", "updated_at", "created_at"),
     )
 
     challenge_id = db.Column(CHAR(36), nullable=False, index=True)
