@@ -170,6 +170,10 @@ def create_app(config=None):
             "message": "Missing or invalid CSRF token",
             "status": 401,
         },
+        "NoAuthorizationError": {
+            "message": "Missing or invalid authorization",
+            "status": 401,
+        },
         "ExpiredSignatureError": {
             "message": "Token has expired",
             "status": 401,
