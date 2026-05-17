@@ -1,11 +1,14 @@
 import json
 import os
+import unicodedata
+from collections import Counter
 from openai import OpenAI
 from api.common.response_codes import NO, YES, INDECISIVE, REFUSAL, WIN, POSSIBLE, POSSIBLY_NOT
 
 _client = None
 
 _VALID_RESPONSE_CODES = {NO, YES, INDECISIVE, REFUSAL, WIN, POSSIBLE, POSSIBLY_NOT}
+_STABLE_GUESS_THRESHOLD = 3
 _RESPONSE_FORMAT = {
     "type": "json_schema",
     "json_schema": {
@@ -63,6 +66,87 @@ def _get_client() -> OpenAI:
 
 def _subject_hint_clause(subject_hint: str | None) -> str:
     return f'\nPrivate clue: "{subject_hint}"' if subject_hint else ""
+
+
+def normalize_cached_guess_content(content: str) -> str:
+    normalized = unicodedata.normalize("NFKD", str(content)).casefold()
+    without_accents = "".join(ch for ch in normalized if not unicodedata.combining(ch))
+    return "".join(ch for ch in without_accents if ch.isalnum())
+
+
+def stable_guess_response_for_challenge(challenge_id: str, content: str) -> tuple[int, str] | None:
+    normalized_content = normalize_cached_guess_content(content)
+    if not normalized_content:
+        return None
+
+    from api import db
+    from api.models.game import Game
+    from api.models.guess import Guess, KIND_GUESS
+
+    rows = db.session.execute(
+        db.select(Guess.game_id, Guess.response_code)
+        .join(Game, Guess.game_id == Game.id)
+        .where(
+            Game.challenge_id == challenge_id,
+            Guess.kind == KIND_GUESS,
+            Guess.normalized_content == normalized_content,
+            Guess.response_code.is_not(None),
+        )
+        .order_by(Guess.created_at.desc())
+    ).all()
+
+    response_by_game = {}
+    for game_id, response_code in rows:
+        response_by_game.setdefault(game_id, response_code)
+
+    counts = Counter(response_by_game.values())
+    if not counts:
+        return None
+
+    response_code, match_count = counts.most_common(1)[0]
+    second_count = counts.most_common(2)[1][1] if len(counts) > 1 else 0
+    if match_count >= _STABLE_GUESS_THRESHOLD and match_count > second_count:
+        raw = json.dumps(
+            {
+                "response_code": response_code,
+                "source": "stable_guess_cache",
+                "match_count": match_count,
+                "game_count": len(response_by_game),
+            }
+        )
+        return response_code, raw
+    return None
+
+
+def repeated_guess_response_for_game(game_id: str, content: str) -> tuple[int, str] | None:
+    normalized_content = normalize_cached_guess_content(content)
+    if not normalized_content:
+        return None
+
+    from api import db
+    from api.models.guess import Guess, KIND_GUESS
+
+    row = db.session.execute(
+        db.select(Guess.response_code)
+        .where(
+            Guess.game_id == game_id,
+            Guess.kind == KIND_GUESS,
+            Guess.normalized_content == normalized_content,
+            Guess.response_code.is_not(None),
+        )
+        .order_by(Guess.created_at.desc())
+        .limit(1)
+    ).scalar_one_or_none()
+    if row is None:
+        return None
+
+    raw = json.dumps(
+        {
+            "response_code": row,
+            "source": "same_game_guess_cache",
+        }
+    )
+    return row, raw
 
 
 def judge_guess(

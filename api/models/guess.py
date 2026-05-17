@@ -12,6 +12,7 @@ class Guess(BaseModel):
     __table_args__ = (
         Index("ix_guesses_game_kind_created", "game_id", "kind", "created_at"),
         Index("ix_guesses_user_created_kind", "user_id", "created_at", "kind"),
+        Index("ix_guesses_normalized_kind_response_game", "normalized_content", "kind", "response_code", "game_id"),
     )
 
     game_id = db.Column(
@@ -31,6 +32,7 @@ class Guess(BaseModel):
     # Nullable: hints have no response_code.
     response_code = db.Column(TINYINT(unsigned=True), nullable=True)
     kind = db.Column(VARCHAR(16), nullable=False, server_default=KIND_GUESS, default=KIND_GUESS)
+    normalized_content = db.Column(VARCHAR(160), nullable=True)
     raw_response = db.Column(Text, nullable=True)
 
     game = db.relationship("Game", back_populates="guesses")

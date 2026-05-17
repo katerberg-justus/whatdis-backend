@@ -15,10 +15,17 @@ from api.common.response_codes import WIN
 from api.common.achievements import check_after_guess
 from api.resources.subscriptions import _active_subscription
 from api.common.subscription_plans import STATUS_ACTIVE, STATUS_CANCELLED
-from api.services.ai import judge_guess, give_hint
+from api.services.ai import (
+    judge_guess,
+    give_hint,
+    normalize_cached_guess_content,
+    repeated_guess_response_for_game,
+    stable_guess_response_for_challenge,
+)
 
 MIN_GUESS_LENGTH = 2
 MAX_GUESS_LENGTH = 80
+MIN_GUESSES_FOR_HINT = 20
 
 
 class GuessListResource(Resource):
@@ -58,19 +65,26 @@ class GuessListResource(Resource):
         if _contains_literal_subject(challenge.subject, content):
             rc, raw = WIN, '{"response_code": 4, "source": "literal_subject_match"}'
         else:
-            prior_guesses = db.session.execute(
-                db.select(Guess).where(
-                    Guess.game_id == game_id, Guess.kind == KIND_GUESS
-                ).order_by(Guess.created_at)
-            ).scalars().all()
-            prior = [{"content": g.content, "response_code": g.response_code} for g in prior_guesses]
-
-            rc, raw = judge_guess(
-                challenge.subject,
-                content,
-                prior,
-                subject_hint=challenge.subject_hint,
+            stable_response = (
+                repeated_guess_response_for_game(game_id, content)
+                or stable_guess_response_for_challenge(challenge.id, content)
             )
+            if stable_response is not None:
+                rc, raw = stable_response
+            else:
+                prior_guesses = db.session.execute(
+                    db.select(Guess).where(
+                        Guess.game_id == game_id, Guess.kind == KIND_GUESS
+                    ).order_by(Guess.created_at)
+                ).scalars().all()
+                prior = [{"content": g.content, "response_code": g.response_code} for g in prior_guesses]
+
+                rc, raw = judge_guess(
+                    challenge.subject,
+                    content,
+                    prior,
+                    subject_hint=challenge.subject_hint,
+                )
 
         if rc == WIN and game.completed_at is None:
             game.completed_at = datetime.now(timezone.utc)
@@ -81,6 +95,7 @@ class GuessListResource(Resource):
             content=content,
             response_code=rc,
             kind=KIND_GUESS,
+            normalized_content=normalize_cached_guess_content(content),
             raw_response=raw,
         )
         db.session.add(guess)
@@ -109,6 +124,14 @@ class HintListResource(Resource):
         challenge = db.session.get(Challenge, game.challenge_id)
         if challenge is None:
             return {"error": "Challenge not found"}, 404
+
+        guess_count = db.session.execute(
+            db.select(db.func.count()).select_from(Guess).where(
+                Guess.game_id == game_id, Guess.kind == KIND_GUESS
+            )
+        ).scalar_one()
+        if guess_count < MIN_GUESSES_FOR_HINT:
+            return {"error": f"Hints unlock after {MIN_GUESSES_FOR_HINT} guesses."}, 403
 
         user = db.session.get(User, uid)
         sub = _active_subscription(uid)
