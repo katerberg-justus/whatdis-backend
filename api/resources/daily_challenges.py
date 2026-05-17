@@ -50,17 +50,35 @@ def _serialize(dc: DailyChallenge, completed: bool = False) -> dict:
     }
 
 
+def _daily_slots_for_date(target: date) -> list[DailyChallenge]:
+    rows = db.session.execute(
+        db.select(DailyChallenge)
+        .join(Challenge, DailyChallenge.challenge_id == Challenge.id)
+        .where(DailyChallenge.available_on == target)
+        .order_by(
+            DailyChallenge.difficulty,
+            DailyChallenge.updated_at.desc(),
+            DailyChallenge.created_at.desc(),
+        )
+    ).scalars().all()
+
+    slots = []
+    seen_difficulties = set()
+    for slot in rows:
+        if slot.difficulty in seen_difficulties:
+            continue
+        seen_difficulties.add(slot.difficulty)
+        slots.append(slot)
+    return slots
+
+
 class DailyChallengeListResource(Resource):
     decorators = [limiter.limit("60 per minute")]
 
     def get(self):
         user = _current_user_optional()
 
-        today_slots = db.session.execute(
-            db.select(DailyChallenge)
-            .where(DailyChallenge.available_on == _today_in_amsterdam())
-            .order_by(DailyChallenge.difficulty)
-        ).scalars().all()
+        today_slots = _daily_slots_for_date(_today_in_amsterdam())
 
         completed_ids = _completed_challenge_ids(user) if user else set()
 
@@ -130,10 +148,6 @@ class DailyChallengeByDateResource(Resource):
         if target != _today_in_amsterdam() and not user.is_subscribed:
             return {"error": "Subscription required to view non-today schedules"}, 403
 
-        slots = db.session.execute(
-            db.select(DailyChallenge)
-            .where(DailyChallenge.available_on == target)
-            .order_by(DailyChallenge.difficulty)
-        ).scalars().all()
+        slots = _daily_slots_for_date(target)
         completed_ids = _completed_challenge_ids(user)
         return [_serialize(dc, dc.challenge_id in completed_ids) for dc in slots], 200

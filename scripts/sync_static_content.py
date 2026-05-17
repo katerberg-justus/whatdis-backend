@@ -70,11 +70,12 @@ def _normalized_pack_difficulty(pack_data: dict) -> int:
     return MIXED_DIFFICULTY
 
 
-def _sync_packs(payload: dict) -> tuple[int, int, int, set[str]]:
+def _sync_packs(payload: dict) -> tuple[int, int, int, set[str], dict[str, str]]:
     inserted = 0
     updated = 0
     challenge_total = 0
     touched_pack_ids: set[str] = set()
+    challenge_id_map: dict[str, str] = {}
 
     for pack_data in payload.get("challenge_packs", []):
         pack_id = _require_id(pack_data, "challenge_pack")
@@ -122,6 +123,8 @@ def _sync_packs(payload: dict) -> tuple[int, int, int, set[str]]:
                     )
                     .order_by(Challenge.position, Challenge.created_at)
                 ).scalars().first()
+            if challenge is not None:
+                challenge_id_map[challenge_id] = challenge.id
             challenge_values = dict(
                 pack_id=synced_pack_id,
                 subject=challenge_data["subject"],
@@ -135,6 +138,8 @@ def _sync_packs(payload: dict) -> tuple[int, int, int, set[str]]:
             if challenge is None:
                 challenge = Challenge(id=challenge_id, **challenge_values)
                 db.session.add(challenge)
+                db.session.flush()
+                challenge_id_map[challenge_id] = challenge.id
                 inserted += 1
                 touched_pack_ids.add(synced_pack_id)
             elif _apply_changes(challenge, challenge_values):
@@ -142,7 +147,7 @@ def _sync_packs(payload: dict) -> tuple[int, int, int, set[str]]:
                 touched_pack_ids.add(synced_pack_id)
             challenge_total += 1
 
-    return inserted, updated, challenge_total, touched_pack_ids
+    return inserted, updated, challenge_total, touched_pack_ids, challenge_id_map
 
 
 def _sync_achievements(payload: dict) -> tuple[int, int, int]:
@@ -178,7 +183,7 @@ def _sync_achievements(payload: dict) -> tuple[int, int, int]:
     return inserted, updated, total
 
 
-def _sync_daily_challenges(payload: dict) -> tuple[int, int, int]:
+def _sync_daily_challenges(payload: dict, challenge_id_map: dict[str, str]) -> tuple[int, int, int]:
     inserted = 0
     updated = 0
     total = 0
@@ -189,12 +194,9 @@ def _sync_daily_challenges(payload: dict) -> tuple[int, int, int]:
         if slot_id is None:
             continue
 
-        slot_key = (data["available_on"], data["difficulty"])
-        if slot_key in seen_slots:
-            continue
-        seen_slots.add(slot_key)
-
         challenge_id = data.get("challenge_id")
+        if challenge_id in challenge_id_map:
+            challenge_id = challenge_id_map[challenge_id]
         challenge = db.session.get(Challenge, challenge_id) if challenge_id else None
         if challenge is None and data.get("subject"):
             pack = None
@@ -217,6 +219,11 @@ def _sync_daily_challenges(payload: dict) -> tuple[int, int, int]:
                 ).scalars().first()
         if challenge is None:
             continue
+
+        slot_key = (data["available_on"], data["difficulty"])
+        if slot_key in seen_slots:
+            continue
+        seen_slots.add(slot_key)
 
         values = dict(
             challenge_id=challenge.id,
@@ -263,9 +270,17 @@ def main() -> int:
 
     with app.app_context():
         try:
-            pack_inserted, pack_updated, challenge_total, touched_pack_ids = _sync_packs(payload)
+            (
+                pack_inserted,
+                pack_updated,
+                challenge_total,
+                touched_pack_ids,
+                challenge_id_map,
+            ) = _sync_packs(payload)
             ach_inserted, ach_updated, ach_total = _sync_achievements(payload)
-            daily_inserted, daily_updated, daily_total = _sync_daily_challenges(payload)
+            daily_inserted, daily_updated, daily_total = _sync_daily_challenges(
+                payload, challenge_id_map
+            )
             db.session.commit()
             _clear_static_cache(touched_pack_ids)
         except Exception:
