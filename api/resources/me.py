@@ -7,7 +7,13 @@ from sqlalchemy.orm import selectinload
 from api import db, limiter
 from api.models.user import User
 from api.models.friendship import Friendship, PENDING, ACCEPTED
-from api.common.energy import get_energy, get_energy_boost, award_claim_bonus
+from api.common.energy import (
+    get_energy,
+    get_energy_boost,
+    award_claim_bonus,
+    ensure_referral_code,
+    apply_referral_code,
+)
 from api.common.base_model import utc_isoformat
 from api.common.limits import ENERGY_DAILY_GUEST, ENERGY_DAILY_USER, ENERGY_MAX_SUBSCRIBER
 from api.resources.subscriptions import _active_subscription, _serialize as _serialize_sub
@@ -41,6 +47,8 @@ class MeResource(Resource):
 
     def get(self):
         user = _current_user()
+        ensure_referral_code(user)
+        db.session.commit()
         return _serialize_user(user), 200
 
     def put(self):
@@ -51,6 +59,7 @@ class MeResource(Resource):
 
     def _update(self):
         user = _current_user()
+        ensure_referral_code(user)
         data = request.get_json(silent=True) or {}
         if "name" in data:
             user.name = data["name"]
@@ -68,6 +77,13 @@ class MeResource(Resource):
             if language is None:
                 return {"error": f"Invalid language. Choose from: {', '.join(sorted(SUPPORTED_LANGUAGES))}"}, 400
             user.language = language
+        if "referral_code" in data:
+            if not user.is_guest:
+                return {"error": "Referral code can only be applied before claiming an account"}, 400
+            ok, error = apply_referral_code(user, data.get("referral_code"))
+            if not ok:
+                db.session.rollback()
+                return {"error": error}, 400
         try:
             db.session.commit()
         except IntegrityError:
@@ -100,6 +116,12 @@ class ClaimResource(Resource):
         user.set_password(data["password"])
         if data.get("name"):
             user.name = data["name"]
+        ensure_referral_code(user)
+        if data.get("referral_code"):
+            ok, error = apply_referral_code(user, data.get("referral_code"))
+            if not ok:
+                db.session.rollback()
+                return {"error": error}, 400
         award_claim_bonus(user)
         user.is_guest = False
         try:
@@ -227,6 +249,10 @@ def _serialize_user(u: User) -> dict:
         "subscription": _serialize_sub(sub) if sub else None,
         "energy": get_energy(u, is_subscribed=is_subscribed),
         "energy_boost": energy_boost,
+        "referral_code": u.referral_code,
+        "referrer_id": u.referrer_id,
+        "referral_signup_bonus_awarded": bool(u.referral_signup_bonus_awarded),
+        "referral_referrer_bonus_awarded": bool(u.referral_referrer_bonus_awarded),
         "max_energy": max_energy,
         "created_at": utc_isoformat(u.created_at),
         "updated_at": utc_isoformat(u.updated_at),

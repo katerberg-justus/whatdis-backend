@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
-from sqlalchemy import String, DateTime, Integer, Date, Boolean
+from sqlalchemy import String, DateTime, Integer, Date, Boolean, ForeignKey
+from sqlalchemy.dialects.mysql import CHAR
 from werkzeug.security import generate_password_hash, check_password_hash
 from api import db
 from api.common.base_model import BaseModel
@@ -20,6 +21,10 @@ class User(BaseModel):
     energy_balance           = db.Column(Integer, nullable=True)
     energy_replenished_date  = db.Column(Date, nullable=True)
     energy_boost             = db.Column(Integer, nullable=False, default=0, server_default="0")
+    referral_code            = db.Column(String(32), nullable=True, unique=True, index=True)
+    referrer_id              = db.Column(CHAR(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
+    referral_signup_bonus_awarded = db.Column(Boolean, nullable=False, default=False, server_default="0")
+    referral_referrer_bonus_awarded = db.Column(Boolean, nullable=False, default=False, server_default="0")
     # Consecutive-day streak tracking
     current_streak           = db.Column(Integer, nullable=False, default=0, server_default="0")
     streak_updated_date      = db.Column(Date, nullable=True)
@@ -56,6 +61,12 @@ class User(BaseModel):
     achievements = db.relationship(
         "UserAchievement", back_populates="user",
         lazy="dynamic", cascade="all, delete-orphan",
+    )
+    referrer = db.relationship(
+        "User",
+        remote_side="User.id",
+        foreign_keys=[referrer_id],
+        backref=db.backref("referred_users", lazy="dynamic"),
     )
 
     @property

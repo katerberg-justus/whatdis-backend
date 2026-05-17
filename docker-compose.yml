@@ -13,7 +13,8 @@ services:
       PROXY_FIX_X_FOR: "2"
       PROXY_FIX_X_PROTO: "1"
       PROXY_FIX_X_HOST: "1"
-      CORS_ORIGINS: https://app.whatdis.nl,https://whatdis.nl
+      CORS_ORIGINS: https://app.whatdis.nl,https://whatdis.nl,https://whatdis.app
+      JWT_COOKIE_SAMESITE: None
       STATIC_CONTENT_SYNC_ON_START: "1"
     expose:
       - "8000"

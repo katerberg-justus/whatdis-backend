@@ -13,6 +13,7 @@ from flask_jwt_extended import (
 )
 from api import db, limiter
 from api.models.user import User
+from api.common.energy import ensure_referral_code, apply_referral_code
 
 
 def _csrf_payload(access_token=None, refresh_token=None):
@@ -77,6 +78,10 @@ class GuestLoginResource(Resource):
             is_guest=True,
             language=language,
         )
+        ensure_referral_code(guest)
+        ok, error = apply_referral_code(guest, data.get("referral_code"))
+        if not ok:
+            return {"error": error}, 400
         db.session.add(guest)
         db.session.commit()
 

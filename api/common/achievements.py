@@ -79,6 +79,8 @@ def check_after_guess(user, won: bool = False) -> list:
         newly: list = []
         guess_count = _increment_counter(user, "total_guess_count")
         newly += _award_category(user_id, "guesses", guess_count)
+        from api.common.energy import award_referral_bonus_if_eligible
+        award_referral_bonus_if_eligible(user)
 
         if won:
             win_count = _increment_counter(user, "win_count")
@@ -102,6 +104,8 @@ def check_after_battle_guess(user, won: bool = False, opponent=None) -> list:
         newly: list = []
         guess_count = _increment_counter(user, "total_guess_count")
         newly += _award_category(user_id, "guesses", guess_count)
+        from api.common.energy import award_referral_bonus_if_eligible
+        award_referral_bonus_if_eligible(user)
 
         if won:
             battle_wins = _increment_counter(user, "battle_win_count")

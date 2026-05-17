@@ -1,3 +1,4 @@
+import secrets
 from datetime import datetime, timezone, timedelta, date, time
 from zoneinfo import ZoneInfo
 from sqlalchemy import func, case
@@ -11,6 +12,9 @@ from api.common.limits import (
 )
 
 HINT_ENERGY_COST = 5
+REFERRAL_ENERGY_BONUS = 50
+REFERRAL_MIN_GUESSES = 10
+REFERRAL_CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
 AMSTERDAM_TZ = ZoneInfo("Europe/Amsterdam")
 
 
@@ -55,6 +59,74 @@ def _energy_boost(user) -> int:
 
 def get_energy_boost(user) -> int:
     return _energy_boost(user)
+
+
+def normalize_referral_code(code: str | None) -> str | None:
+    if not code:
+        return None
+    normalized = "".join(ch for ch in str(code).upper() if ch.isalnum())
+    return normalized[:32] or None
+
+
+def ensure_referral_code(user) -> str:
+    """Assign a stable share code to a user if they do not have one yet."""
+    if user.referral_code:
+        return user.referral_code
+    from api.models.user import User
+    for _ in range(10):
+        code = "".join(secrets.choice(REFERRAL_CODE_ALPHABET) for _ in range(10))
+        exists = db.session.execute(
+            db.select(User.id).where(User.referral_code == code)
+        ).scalar_one_or_none()
+        if exists is None:
+            user.referral_code = code
+            return code
+    raise RuntimeError("Could not generate a unique referral code")
+
+
+def apply_referral_code(user, code: str | None) -> tuple[bool, str | None]:
+    """Attach a referrer to a new account and award the signup bonus once."""
+    normalized = normalize_referral_code(code)
+    if normalized is None:
+        return True, None
+    if user.referrer_id or user.referral_signup_bonus_awarded:
+        return False, "Referral already applied"
+
+    from api.models.user import User
+    referrer = db.session.execute(
+        db.select(User).where(User.referral_code == normalized)
+    ).scalar_one_or_none()
+    if referrer is None:
+        return False, "Invalid referral code"
+    if referrer.id == user.id:
+        return False, "Cannot refer yourself"
+
+    user.referrer_id = referrer.id
+    user.energy_boost = _energy_boost(user) + REFERRAL_ENERGY_BONUS
+    user.referral_signup_bonus_awarded = True
+    award_referral_bonus_if_eligible(user)
+    return True, None
+
+
+def award_referral_bonus_if_eligible(user) -> bool:
+    """Award the referrer once after the referred account reaches the threshold."""
+    if (
+        user is None
+        or not user.referrer_id
+        or user.referral_referrer_bonus_awarded
+        or int(user.total_guess_count or 0) < REFERRAL_MIN_GUESSES
+    ):
+        return False
+
+    from api.models.user import User
+    referrer = db.session.get(User, user.referrer_id)
+    if referrer is None:
+        return False
+
+    referrer.energy_boost = _energy_boost(referrer) + REFERRAL_ENERGY_BONUS
+    user.referral_referrer_bonus_awarded = True
+    db.session.flush()
+    return True
 
 
 def _user_key(user) -> str:
