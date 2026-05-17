@@ -10,6 +10,9 @@ services:
       FLASK_DEBUG: "0"
       REDIS_HOST: redis
       RATELIMIT_STORAGE_URI: redis://redis:6379/1
+      PROXY_FIX_X_FOR: "2"
+      PROXY_FIX_X_PROTO: "1"
+      PROXY_FIX_X_HOST: "1"
       CORS_ORIGINS: https://app.whatdis.nl,https://whatdis.nl
       STATIC_CONTENT_SYNC_ON_START: "1"
     expose:

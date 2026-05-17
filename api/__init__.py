@@ -36,6 +36,24 @@ def rate_limit_identity() -> str:
 limiter = Limiter(key_func=rate_limit_identity)
 
 
+def _proxy_fix_count(name: str, default: int) -> int:
+    try:
+        return max(0, int(os.environ.get(name, default)))
+    except (TypeError, ValueError):
+        return default
+
+
+def _apply_proxy_fix(app: Flask) -> None:
+    app.wsgi_app = ProxyFix(
+        app.wsgi_app,
+        x_for=_proxy_fix_count("PROXY_FIX_X_FOR", 1),
+        x_proto=_proxy_fix_count("PROXY_FIX_X_PROTO", 1),
+        x_host=_proxy_fix_count("PROXY_FIX_X_HOST", 1),
+        x_port=_proxy_fix_count("PROXY_FIX_X_PORT", 0),
+        x_prefix=_proxy_fix_count("PROXY_FIX_X_PREFIX", 0),
+    )
+
+
 class Api(RestfulApi):
     def handle_error(self, error):
         error_config = self.errors.get(type(error).__name__)
@@ -51,7 +69,7 @@ class Api(RestfulApi):
 
 def create_app(config=None):
     app = Flask(__name__, instance_relative_config=True)
-    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
+    _apply_proxy_fix(app)
 
     app.config["SECRET_KEY"] = os.environ["SECRET_KEY"]
     db_host = "localhost" if os.environ.get("FLASK_ENV") == "development" else os.environ['DB_HOST']
