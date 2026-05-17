@@ -249,15 +249,16 @@ def _sync_daily_challenges(payload: dict, challenge_id_map: dict[str, str]) -> t
     return inserted, updated, total
 
 
-def _clear_static_cache(touched_pack_ids: set[str]) -> None:
-    if not touched_pack_ids:
-        return
-    cache.delete("challenge_packs:list")
-    cache.delete("challenge_packs:list:public-stickers:v1")
-    cache.delete("challenge_packs:list:public-stickers:v2")
-    for pack_id in touched_pack_ids:
-        cache.delete(f"challenge_packs:challenges:{pack_id}")
-        cache.delete(f"challenge_packs:challenges:public-stickers:v1:{pack_id}")
+def _clear_static_cache(touched_pack_ids: set[str], achievements_changed: bool) -> None:
+    if touched_pack_ids:
+        cache.delete("challenge_packs:list")
+        cache.delete("challenge_packs:list:public-stickers:v1")
+        cache.delete("challenge_packs:list:public-stickers:v2")
+        for pack_id in touched_pack_ids:
+            cache.delete(f"challenge_packs:challenges:{pack_id}")
+            cache.delete(f"challenge_packs:challenges:public-stickers:v1:{pack_id}")
+    if achievements_changed:
+        cache.delete("achievements:definitions:v1")
 
 
 def main() -> int:
@@ -282,7 +283,7 @@ def main() -> int:
                 payload, challenge_id_map
             )
             db.session.commit()
-            _clear_static_cache(touched_pack_ids)
+            _clear_static_cache(touched_pack_ids, ach_inserted > 0 or ach_updated > 0)
         except Exception:
             db.session.rollback()
             raise
