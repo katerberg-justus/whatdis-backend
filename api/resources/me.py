@@ -24,6 +24,7 @@ from api.common.subscription_plans import (
     SUPPORTED_CURRENCIES,
     normalize_currency,
 )
+from api.services.push_notifications import send_to_user
 
 SUPPORTED_LANGUAGES = {"en", "es", "fr", "de", "nl", "pt"}
 
@@ -181,6 +182,12 @@ class FriendListResource(Resource):
         friendship = Friendship(requester_id=me.id, addressee_id=target.id, status=PENDING)
         db.session.add(friendship)
         db.session.commit()
+        send_to_user(target.id, {
+            "title": "New friend request",
+            "body": me.name,
+            "url": "/battles/friends",
+            "tag": f"friend-request-{friendship.id}",
+        })
         return _serialize_friendship(friendship, me.id), 201
 
 
@@ -219,6 +226,12 @@ class FriendResource(Resource):
 
         friendship.status = ACCEPTED
         db.session.commit()
+        send_to_user(friendship.requester_id, {
+            "title": "Friend request accepted",
+            "body": friendship.addressee.name if friendship.addressee else "",
+            "url": "/battles/friends",
+            "tag": f"friend-accepted-{friendship.id}",
+        })
         return _serialize_friendship(friendship, uid), 200
 
     def delete(self, friendship_id):

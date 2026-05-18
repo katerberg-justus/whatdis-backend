@@ -49,6 +49,11 @@ def register_resources(api):
         StripeWebhookResource,
     )
     from api.resources.achievements import AchievementListResource, MeAchievementListResource
+    from api.resources.push_subscriptions import (
+        PushSubscriptionListResource,
+        PushSubscriptionResource,
+        PushVapidPublicKeyResource,
+    )
     from api.resources.custom_challenges import (
         CustomChallengeListResource,
         MyCustomChallengeListResource,
@@ -65,6 +70,9 @@ def register_resources(api):
     api.add_resource(FriendResource,            "/me/friends/<string:friendship_id>")
     api.add_resource(MeSubscriptionResource,    "/me/subscription")
     api.add_resource(MeAchievementListResource, "/me/achievements")
+    api.add_resource(PushSubscriptionListResource, "/me/push-subscriptions")
+    api.add_resource(PushSubscriptionResource,     "/me/push-subscriptions/<string:subscription_id>")
+    api.add_resource(PushVapidPublicKeyResource,   "/push/vapid-public-key")
 
     # Users
     api.add_resource(UserListResource,         "/users")

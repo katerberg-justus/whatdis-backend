@@ -62,6 +62,10 @@ class User(BaseModel):
         "UserAchievement", back_populates="user",
         lazy="dynamic", cascade="all, delete-orphan",
     )
+    push_subscriptions = db.relationship(
+        "PushSubscription", back_populates="user",
+        lazy="dynamic", cascade="all, delete-orphan",
+    )
     referrer = db.relationship(
         "User",
         remote_side="User.id",

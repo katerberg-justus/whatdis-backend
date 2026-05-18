@@ -66,8 +66,14 @@ def _serialize(
     *,
     user_id: str | None = None,
     games_by_challenge_id: dict[str, Game] | None = None,
+    creator_names_by_id: dict[str, str] | None = None,
 ) -> dict:
     game = games_by_challenge_id.get(c.id) if games_by_challenge_id else None
+    creator_username = (
+        creator_names_by_id.get(c.created_by_user_id)
+        if creator_names_by_id and c.created_by_user_id
+        else None
+    )
     payload = {
         "id": c.id,
         "subject": c.subject,
@@ -75,6 +81,7 @@ def _serialize(
         "difficulty": DIFFICULTY_LABEL.get(c.difficulty, c.difficulty),
         "sticker": c.sticker,
         "created_by_user_id": c.created_by_user_id,
+        "created_by_username": creator_username,
         "created_at": utc_isoformat(c.created_at),
         "updated_at": utc_isoformat(c.updated_at),
     }
@@ -111,7 +118,12 @@ class MyCustomChallengeListResource(Resource):
             .where(Challenge.created_by_user_id == uid)
             .order_by(Challenge.created_at.desc())
         ).scalars().all()
-        return [_serialize(c, include_share_token=True) for c in challenges], 200
+        user = db.session.get(User, uid)
+        creator_names_by_id = {uid: user.name} if user is not None else {}
+        return [
+            _serialize(c, include_share_token=True, creator_names_by_id=creator_names_by_id)
+            for c in challenges
+        ], 200
 
     def post(self):
         uid = get_jwt_identity()
@@ -163,7 +175,11 @@ class MyCustomChallengeListResource(Resource):
         db.session.add(challenge)
         db.session.commit()
 
-        return _serialize(challenge, include_share_token=True), 201
+        return _serialize(
+            challenge,
+            include_share_token=True,
+            creator_names_by_id={uid: user.name},
+        ), 201
 
 
 class CustomChallengeListResource(Resource):
@@ -192,6 +208,14 @@ class CustomChallengeListResource(Resource):
         ).scalars().all()
 
         challenge_ids = [c.id for c in challenges]
+        creator_ids = {c.created_by_user_id for c in challenges if c.created_by_user_id}
+        creator_names_by_id = (
+            dict(db.session.execute(
+                db.select(User.id, User.name).where(User.id.in_(creator_ids))
+            ).all())
+            if creator_ids
+            else {}
+        )
         games = db.session.execute(
             db.select(Game)
             .where(Game.user_id == uid, Game.challenge_id.in_(challenge_ids))
@@ -207,6 +231,7 @@ class CustomChallengeListResource(Resource):
                 include_share_token=c.created_by_user_id == uid,
                 user_id=uid,
                 games_by_challenge_id=games_by_challenge_id,
+                creator_names_by_id=creator_names_by_id,
             )
             for c in challenges
         ], 200
@@ -243,7 +268,13 @@ class CustomChallengeRedeemResource(Resource):
             except IntegrityError:
                 db.session.rollback()
 
-        return _serialize(challenge), 200
+        creator = db.session.get(User, challenge.created_by_user_id)
+        creator_names_by_id = (
+            {challenge.created_by_user_id: creator.name}
+            if creator is not None and challenge.created_by_user_id
+            else {}
+        )
+        return _serialize(challenge, creator_names_by_id=creator_names_by_id), 200
 
 
 class CustomChallengeResource(Resource):
@@ -256,4 +287,10 @@ class CustomChallengeResource(Resource):
             abort(404)
         if not _has_access(challenge, uid):
             abort(403)
-        return _serialize(challenge), 200
+        creator = db.session.get(User, challenge.created_by_user_id)
+        creator_names_by_id = (
+            {challenge.created_by_user_id: creator.name}
+            if creator is not None
+            else {}
+        )
+        return _serialize(challenge, creator_names_by_id=creator_names_by_id), 200

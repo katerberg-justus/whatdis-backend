@@ -10,9 +10,11 @@ from api.models.challenge import Challenge
 from api.models.game import Game
 from api.models.user import User
 from api.common.challenge_enums import VALID_DIFFICULTIES, DIFFICULTY_LABEL
+from api.services.push_notifications import send_to_all
 
 AMSTERDAM_TZ = ZoneInfo("Europe/Amsterdam")
 _DAILY_SLOTS_CACHE_VERSION = "v1"
+_DAILY_NOTIFICATION_KEY_PREFIX = "push:daily-notified"
 
 
 def _today_in_amsterdam() -> date:
@@ -31,6 +33,25 @@ def _daily_slots_cache_key(target: date) -> str:
 
 def _bust_daily_slots_cache(target: date) -> None:
     cache.delete(_daily_slots_cache_key(target))
+
+
+def notify_daily_available(target: date | None = None) -> bool:
+    target = target or _today_in_amsterdam()
+    slots = _daily_slots_for_date(target)
+    if not slots:
+        return False
+
+    key = f"{_DAILY_NOTIFICATION_KEY_PREFIX}:{target.isoformat()}"
+    if cache.get(key):
+        return False
+
+    send_to_all({
+        "title": "New daily challenge",
+        "url": "/challenges",
+        "tag": f"daily-challenge-{target.isoformat()}",
+    })
+    cache.set(key, "1", timeout=_seconds_until_next_amsterdam_midnight())
+    return True
 
 
 def _current_user_optional() -> User | None:
@@ -171,6 +192,8 @@ class DailyChallengeListResource(Resource):
             return {"error": "A daily slot for that difficulty on that date already exists"}, 409
 
         _bust_daily_slots_cache(available_on)
+        if available_on == _today_in_amsterdam():
+            notify_daily_available(available_on)
         return _serialize(slot), 201
 
 

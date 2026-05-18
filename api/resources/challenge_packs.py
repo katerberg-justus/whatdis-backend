@@ -14,6 +14,7 @@ from sqlalchemy import or_
 from api.common.challenge_enums import (
     VALID_PACK_DIFFICULTIES, VALID_DIFFICULTIES, DIFFICULTY_LABEL,
 )
+from api.services.push_notifications import send_to_all
 
 _STATIC_CACHE_TTL = 6 * 3600
 _PACKS_CACHE_KEY = "challenge_packs:list:public-stickers:v3"
@@ -345,6 +346,13 @@ class ChallengePackListResource(Resource):
         db.session.add(pack)
         db.session.commit()
         _bust_pack_cache()
+        if pack.is_active and not pack.is_battle:
+            send_to_all({
+                "title": "New challenge pack",
+                "body": pack.name,
+                "url": "/challenges",
+                "tag": f"challenge-pack-{pack.id}",
+            })
         return _serialize_pack(pack), 201
 
 
@@ -440,6 +448,13 @@ class ChallengeListResource(Resource):
         db.session.add(challenge)
         db.session.commit()
         _bust_pack_cache(pack_id)
+        if pack.is_active and challenge.is_active and challenge.sticker and not pack.is_battle:
+            send_to_all({
+                "title": "New challenges added",
+                "body": pack.name,
+                "url": "/challenges",
+                "tag": f"challenge-added-{challenge.id}",
+            })
         return _serialize_challenge(challenge), 201
 
 

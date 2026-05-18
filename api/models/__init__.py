@@ -11,6 +11,7 @@ from api.models.battle import Battle
 from api.models.battle_guess import BattleGuess
 from api.models.user_subscription import UserSubscription
 from api.models.user_energy_purchase import UserEnergyPurchase
+from api.models.push_subscription import PushSubscription
 
 __all__ = [
     "User", "Friendship",
@@ -19,4 +20,5 @@ __all__ = [
     "Battle", "BattleGuess",
     "UserSubscription",
     "UserEnergyPurchase",
+    "PushSubscription",
 ]

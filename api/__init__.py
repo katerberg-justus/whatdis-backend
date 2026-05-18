@@ -202,4 +202,12 @@ def create_app(config=None):
         db.session.commit()
         click.echo(f"Purged {result.rowcount} guest account(s).")
 
+    @app.cli.command("notify-daily")
+    def notify_daily():
+        """Send the daily challenge push notification once per Amsterdam day."""
+        import click
+        from api.resources.daily_challenges import notify_daily_available
+        sent = notify_daily_available()
+        click.echo("Daily notification sent." if sent else "Daily notification skipped.")
+
     return app

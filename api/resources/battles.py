@@ -15,6 +15,7 @@ from api.common.response_codes import WIN
 from api.common.energy import consume_energy
 from api.common.achievements import check_after_battle_guess
 from api.services.ai import judge_guess
+from api.services.push_notifications import send_to_user
 
 DEFAULT_HISTORY_LIMIT = 100
 MAX_HISTORY_LIMIT = 100
@@ -179,6 +180,12 @@ class BattleListResource(Resource):
         )
         db.session.add(battle)
         db.session.commit()
+        send_to_user(opponent.id, {
+            "title": "New battle invite",
+            "body": db.session.get(User, uid).name,
+            "url": "/battles",
+            "tag": f"battle-invite-{battle.id}",
+        })
         return _serialize(battle, uid), 201
 
 
@@ -287,6 +294,12 @@ class BattleAcceptResource(Resource):
         battle.status = ACTIVE
         battle.current_turn_id = battle.player2_id
         db.session.commit()
+        send_to_user(battle.player1_id, {
+            "title": "Battle accepted",
+            "body": db.session.get(User, uid).name,
+            "url": f"/battles/{battle.id}",
+            "tag": f"battle-accepted-{battle.id}",
+        })
         return _serialize(battle, uid), 200
 
 
@@ -354,8 +367,16 @@ class BattleGuessListResource(Resource):
             battle.current_turn_id = None
         else:
             battle.current_turn_id = _other_player(battle, uid)
+            next_user_id = battle.current_turn_id
 
         db.session.commit()
+        if rc != WIN:
+            send_to_user(next_user_id, {
+                "title": "Your turn",
+                "body": user.name,
+                "url": f"/battles/{battle.id}",
+                "tag": f"battle-turn-{battle.id}",
+            })
         opponent = db.session.get(User, _other_player(battle, uid)) if rc == WIN else None
         new_achievements = check_after_battle_guess(user, won=(rc == WIN), opponent=opponent)
         db.session.commit()
