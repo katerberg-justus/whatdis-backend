@@ -10,6 +10,11 @@ def _enabled(name: str, default: bool = True) -> bool:
     return value.strip().lower() not in {"0", "false", "no", "off"}
 
 
+def _run_migrations() -> None:
+    print("Running database migrations...", flush=True)
+    subprocess.run(["flask", "db", "upgrade"], check=True)
+
+
 def _run_static_sync() -> None:
     command = [sys.executable, "scripts/sync_static_content.py"]
 
@@ -18,6 +23,9 @@ def _run_static_sync() -> None:
 
 
 def main() -> int:
+    if _enabled("DB_MIGRATE_ON_START", default=True):
+        _run_migrations()
+
     if _enabled("STATIC_CONTENT_SYNC_ON_START", default=True):
         _run_static_sync()
 
