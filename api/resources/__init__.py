@@ -54,6 +54,7 @@ def register_resources(api):
         PushSubscriptionResource,
         PushVapidPublicKeyResource,
     )
+    from api.resources.analytics import AnalyticsResource
     from api.resources.custom_challenges import (
         CustomChallengeListResource,
         MyCustomChallengeListResource,
@@ -116,6 +117,9 @@ def register_resources(api):
 
     # Achievements
     api.add_resource(AchievementListResource, "/achievements")
+
+    # Admin analytics
+    api.add_resource(AnalyticsResource, "/analytics")
 
     # Custom challenges (user-authored, share-link gated)
     api.add_resource(MyCustomChallengeListResource, "/me/custom-challenges")
