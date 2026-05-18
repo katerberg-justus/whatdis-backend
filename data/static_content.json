@@ -2,6 +2,27 @@
   "version": 1,
   "challenge_packs": [
     {
+      "id": "019e39ea-9664-7860-91d2-8e884c4cab9e",
+      "name": "Custom Challenges",
+      "description": "User-authored challenges shared via private link",
+      "difficulty": 4,
+      "is_active": true,
+      "subscription_access": false,
+      "is_exclusive": true,
+      "is_battle": false,
+      "challenges": [
+        {
+          "id": "019e3a0c-668b-799c-b86b-592cee7061b5",
+          "subject": "Banaan",
+          "subject_hint": "Gele vrucht",
+          "difficulty": 1,
+          "is_active": true,
+          "sticker": null,
+          "position": 0
+        }
+      ]
+    },
+    {
       "id": "019e219d-274d-70dc-ae6f-aa388273a729",
       "name": "Daily Challenges",
       "description": "Hidden pool for daily-only challenges",
@@ -136,6 +157,198 @@
           "is_active": true,
           "sticker": null,
           "position": 13
+        }
+      ]
+    },
+    {
+      "id": "019e3572-f15d-7068-82c8-a15f254ed37e",
+      "name": "Foreign Flavors",
+      "description": "Exotic dishes from places afar (or close)",
+      "difficulty": 1,
+      "is_active": true,
+      "subscription_access": false,
+      "is_exclusive": false,
+      "is_battle": false,
+      "challenges": [
+        {
+          "id": "019e3577-e4ee-7f48-a19e-071be1093070",
+          "subject": "Paella",
+          "subject_hint": "Spanish saffron rice dish, often with seafood",
+          "difficulty": 0,
+          "is_active": true,
+          "sticker": null,
+          "position": 1
+        },
+        {
+          "id": "019e3577-e4ef-7a28-aad0-75a5a65e5874",
+          "subject": "Sushi",
+          "subject_hint": "Japanese dish of vinegared rice with raw fish",
+          "difficulty": 0,
+          "is_active": true,
+          "sticker": null,
+          "position": 2
+        },
+        {
+          "id": "019e3577-e4f0-7090-8d24-8ad1f81cafeb",
+          "subject": "Pad Thai",
+          "subject_hint": "Thai stir-fried rice noodles with peanuts and lime",
+          "difficulty": 0,
+          "is_active": true,
+          "sticker": null,
+          "position": 3
+        },
+        {
+          "id": "019e3577-e4f0-7134-b4f7-bef118870c5d",
+          "subject": "Tacos",
+          "subject_hint": "Mexican folded tortillas with various fillings",
+          "difficulty": 0,
+          "is_active": true,
+          "sticker": null,
+          "position": 4
+        },
+        {
+          "id": "019e3577-e4f0-7188-8142-6ad742e14a36",
+          "subject": "Couscous",
+          "subject_hint": "North African steamed semolina, often served with stew",
+          "difficulty": 0,
+          "is_active": true,
+          "sticker": null,
+          "position": 5
+        },
+        {
+          "id": "019e3577-e4f0-721c-8571-a2695b04d485",
+          "subject": "Ramen",
+          "subject_hint": "Japanese noodle soup with broth, egg, and pork",
+          "difficulty": 0,
+          "is_active": true,
+          "sticker": null,
+          "position": 6
+        },
+        {
+          "id": "019e3577-e4f0-7264-bde5-5dc00d536286",
+          "subject": "Hummus",
+          "subject_hint": "Middle Eastern dip made from chickpeas and tahini",
+          "difficulty": 0,
+          "is_active": true,
+          "sticker": null,
+          "position": 7
+        },
+        {
+          "id": "019e3577-e4f0-740c-9fe7-5a9fea3fe85d",
+          "subject": "Ceviche",
+          "subject_hint": "Latin American raw fish cured in citrus juices",
+          "difficulty": 1,
+          "is_active": true,
+          "sticker": null,
+          "position": 8
+        },
+        {
+          "id": "019e3577-e4f0-7480-becf-0d5ba703f41c",
+          "subject": "Biryani",
+          "subject_hint": "Indian spiced rice dish with meat or vegetables",
+          "difficulty": 1,
+          "is_active": true,
+          "sticker": null,
+          "position": 9
+        },
+        {
+          "id": "019e3577-e4f0-74d4-85a4-ca99c57b0f8a",
+          "subject": "Pho",
+          "subject_hint": "Vietnamese noodle soup with herbs and broth",
+          "difficulty": 1,
+          "is_active": true,
+          "sticker": null,
+          "position": 10
+        },
+        {
+          "id": "019e3577-e4f0-752c-b04c-213dd4cef249",
+          "subject": "Goulash",
+          "subject_hint": "Hungarian paprika-spiced meat stew",
+          "difficulty": 1,
+          "is_active": true,
+          "sticker": null,
+          "position": 11
+        },
+        {
+          "id": "019e3577-e4f0-7578-bd96-d2f245187d14",
+          "subject": "Moussaka",
+          "subject_hint": "Greek layered eggplant and minced meat casserole",
+          "difficulty": 1,
+          "is_active": true,
+          "sticker": null,
+          "position": 12
+        },
+        {
+          "id": "019e3577-e4f0-75c4-bf29-7397de775717",
+          "subject": "Falafel",
+          "subject_hint": "Middle Eastern deep-fried chickpea balls, often in pita",
+          "difficulty": 1,
+          "is_active": true,
+          "sticker": null,
+          "position": 13
+        },
+        {
+          "id": "019e3577-e4f0-760c-90f1-bdf6d7146e37",
+          "subject": "Tagine",
+          "subject_hint": "Moroccan slow-cooked stew named after its clay pot",
+          "difficulty": 1,
+          "is_active": true,
+          "sticker": null,
+          "position": 14
+        },
+        {
+          "id": "019e3577-e4f0-7658-a111-6469f33ed64c",
+          "subject": "Empanada",
+          "subject_hint": "Latin American stuffed pastry, baked or fried",
+          "difficulty": 1,
+          "is_active": true,
+          "sticker": null,
+          "position": 15
+        },
+        {
+          "id": "019e3577-e4f0-76a4-82ea-4814d6c29ee4",
+          "subject": "Escargot",
+          "subject_hint": "French dish of snails baked in garlic butter",
+          "difficulty": 2,
+          "is_active": true,
+          "sticker": null,
+          "position": 16
+        },
+        {
+          "id": "019e3577-e4f0-76f8-82e6-8d36678ecab7",
+          "subject": "Haggis",
+          "subject_hint": "Scottish savory pudding made with sheep offal",
+          "difficulty": 2,
+          "is_active": true,
+          "sticker": null,
+          "position": 17
+        },
+        {
+          "id": "019e3577-e4f0-7748-90a1-52bffedff9a2",
+          "subject": "Gnocchi",
+          "subject_hint": "Italian soft dumplings made from potato",
+          "difficulty": 2,
+          "is_active": true,
+          "sticker": null,
+          "position": 18
+        },
+        {
+          "id": "019e3577-e4f0-7798-8784-592bf247f720",
+          "subject": "Rendang",
+          "subject_hint": "Indonesian slow-cooked spicy coconut beef",
+          "difficulty": 2,
+          "is_active": true,
+          "sticker": null,
+          "position": 19
+        },
+        {
+          "id": "019e3577-e4f0-77e8-97a8-8cf1357a8c91",
+          "subject": "Baklava",
+          "subject_hint": "Layered phyllo pastry with nuts and syrup, from the Middle East and Balkans",
+          "difficulty": 2,
+          "is_active": true,
+          "sticker": null,
+          "position": 20
         }
       ]
     },
@@ -334,7 +547,7 @@
     {
       "id": "019e3252-84de-7068-af8b-6ce1d69cf464",
       "name": "Residents of the Zoo and Beyond",
-      "description": "The animal kingdom",
+      "description": "Inhabitants of the animal kingdom",
       "difficulty": 1,
       "is_active": true,
       "subscription_access": false,
