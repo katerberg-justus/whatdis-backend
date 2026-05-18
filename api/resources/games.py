@@ -257,6 +257,7 @@ def _serialize_with_context(
         ),
         "pack_id": challenge.pack_id if challenge else None,
         "pack_name": pack.name if pack else None,
+        "pack_is_custom": bool(pack.is_custom) if pack else False,
         "position": ordinal_by_challenge_id.get(challenge.id) if challenge else None,
         "difficulty": DIFFICULTY_LABEL.get(challenge.difficulty) if challenge else None,
         "next_challenge": _serialize_next(

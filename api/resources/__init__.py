@@ -50,6 +50,7 @@ def register_resources(api):
     )
     from api.resources.achievements import AchievementListResource, MeAchievementListResource
     from api.resources.custom_challenges import (
+        CustomChallengeListResource,
         MyCustomChallengeListResource,
         MyCustomChallengeResource,
         CustomChallengeRedeemResource,
@@ -111,5 +112,6 @@ def register_resources(api):
     # Custom challenges (user-authored, share-link gated)
     api.add_resource(MyCustomChallengeListResource, "/me/custom-challenges")
     api.add_resource(MyCustomChallengeResource,     "/me/custom-challenges/<string:challenge_id>")
+    api.add_resource(CustomChallengeListResource,   "/custom-challenges")
     api.add_resource(CustomChallengeRedeemResource, "/custom-challenges/redeem")
     api.add_resource(CustomChallengeResource,       "/custom-challenges/<string:challenge_id>")
