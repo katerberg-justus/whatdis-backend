@@ -40,6 +40,7 @@ def _public_challenge_filters() -> tuple:
     return (
         Challenge.is_active == True,
         Challenge.sticker.is_not(None),
+        Challenge.created_by_user_id.is_(None),
     )
 
 

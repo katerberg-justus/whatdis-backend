@@ -71,11 +71,18 @@ class GameListResource(Resource):
             return {"error": "Battle challenges cannot be started as ordinary games"}, 400
 
         if not is_daily:
-            from api.resources.challenge_packs import _has_access
-            if not challenge.is_active or challenge.sticker is None:
+            if not challenge.is_active:
                 return {"error": "Challenge not found"}, 404
-            if not _has_access(pack, uid):
-                return {"error": "Pack access required"}, 403
+            if challenge.created_by_user_id is not None:
+                from api.resources.custom_challenges import _has_access as _has_custom_access
+                if not _has_custom_access(challenge, uid):
+                    return {"error": "Challenge access required"}, 403
+            else:
+                from api.resources.challenge_packs import _has_access
+                if challenge.sticker is None:
+                    return {"error": "Challenge not found"}, 404
+                if not _has_access(pack, uid):
+                    return {"error": "Pack access required"}, 403
 
         existing = db.session.execute(
             db.select(Game).where(

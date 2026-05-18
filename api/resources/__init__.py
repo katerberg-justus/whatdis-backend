@@ -49,6 +49,12 @@ def register_resources(api):
         StripeWebhookResource,
     )
     from api.resources.achievements import AchievementListResource, MeAchievementListResource
+    from api.resources.custom_challenges import (
+        MyCustomChallengeListResource,
+        MyCustomChallengeResource,
+        CustomChallengeRedeemResource,
+        CustomChallengeResource,
+    )
 
     # Self
     api.add_resource(MeResource,                "/me")
@@ -101,3 +107,9 @@ def register_resources(api):
 
     # Achievements
     api.add_resource(AchievementListResource, "/achievements")
+
+    # Custom challenges (user-authored, share-link gated)
+    api.add_resource(MyCustomChallengeListResource, "/me/custom-challenges")
+    api.add_resource(MyCustomChallengeResource,     "/me/custom-challenges/<string:challenge_id>")
+    api.add_resource(CustomChallengeRedeemResource, "/custom-challenges/redeem")
+    api.add_resource(CustomChallengeResource,       "/custom-challenges/<string:challenge_id>")
