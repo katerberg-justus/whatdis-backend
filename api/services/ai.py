@@ -50,8 +50,8 @@ Secret: "{subject}"
 """
 
 _HINT_SYSTEM = (
-    "You are a 20-questions host. Give ONE short sentence hinting at the secret "
-    "without naming it or any obvious synonym. Be subtle; build on prior Q&A."
+    "You are a 20-questions host. Give ONE short sentence hinting at the questions one should ask "
+    "without naming it or any obvious synonym. Be cryptic and build on prior Q&A."
     "{lang_clause}{subject_hint_clause} "
     "Secret: \"{subject}\"."
 )
