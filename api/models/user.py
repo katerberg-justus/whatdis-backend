@@ -66,6 +66,10 @@ class User(BaseModel):
         "PushSubscription", back_populates="user",
         lazy="dynamic", cascade="all, delete-orphan",
     )
+    challenge_ratings = db.relationship(
+        "ChallengeRating", back_populates="user",
+        lazy="dynamic", cascade="all, delete-orphan",
+    )
     referrer = db.relationship(
         "User",
         remote_side="User.id",

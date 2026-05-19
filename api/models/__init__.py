@@ -12,6 +12,7 @@ from api.models.battle_guess import BattleGuess
 from api.models.user_subscription import UserSubscription
 from api.models.user_energy_purchase import UserEnergyPurchase
 from api.models.push_subscription import PushSubscription
+from api.models.challenge_rating import ChallengeRating
 
 __all__ = [
     "User", "Friendship",
@@ -21,4 +22,5 @@ __all__ = [
     "UserSubscription",
     "UserEnergyPurchase",
     "PushSubscription",
+    "ChallengeRating",
 ]

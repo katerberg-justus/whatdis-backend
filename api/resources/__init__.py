@@ -55,6 +55,7 @@ def register_resources(api):
         PushVapidPublicKeyResource,
     )
     from api.resources.analytics import AnalyticsResource
+    from api.resources.challenge_ratings import ChallengeRatingResource
     from api.resources.custom_challenges import (
         CustomChallengeListResource,
         MyCustomChallengeListResource,
@@ -102,6 +103,7 @@ def register_resources(api):
     api.add_resource(ChallengeListResource,     "/challenge-packs/<string:pack_id>/challenges")
     api.add_resource(ChallengeResource,         "/challenge-packs/<string:pack_id>/challenges/<string:challenge_id>")
     api.add_resource(PackAccessResource,        "/challenge-packs/<string:pack_id>/access")
+    api.add_resource(ChallengeRatingResource,    "/challenges/<string:challenge_id>/rating")
 
     # Daily challenges
     api.add_resource(DailyChallengeListResource,   "/daily")

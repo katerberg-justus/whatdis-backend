@@ -4,7 +4,7 @@ from zoneinfo import ZoneInfo
 from flask import request
 from flask_restful import Resource, abort
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from sqlalchemy import func, or_
+from sqlalchemy import case, func, or_
 from sqlalchemy.exc import IntegrityError
 from api import db, limiter
 from api.common.base_model import utc_isoformat
@@ -14,6 +14,7 @@ from api.models.challenge import Challenge
 from api.models.challenge_pack import ChallengePack
 from api.models.user_challenge_access import UserChallengeAccess
 from api.models.game import Game
+from api.models.challenge_rating import ChallengeRating
 
 CUSTOM_CHALLENGE_DAILY_LIMIT = 5
 SHARE_TOKEN_LENGTH = 12
@@ -66,6 +67,7 @@ def _serialize(
     *,
     user_id: str | None = None,
     games_by_challenge_id: dict[str, Game] | None = None,
+    stats_by_challenge_id: dict[str, dict] | None = None,
     creator_names_by_id: dict[str, str] | None = None,
 ) -> dict:
     game = games_by_challenge_id.get(c.id) if games_by_challenge_id else None
@@ -86,7 +88,14 @@ def _serialize(
         "updated_at": utc_isoformat(c.updated_at),
     }
     if user_id is not None:
-        payload["is_owner"] = c.created_by_user_id == user_id
+        is_owner = c.created_by_user_id == user_id
+        payload["is_owner"] = is_owner
+        if is_owner:
+            stats = stats_by_challenge_id.get(c.id, {}) if stats_by_challenge_id else {}
+            payload["play_count"] = int(stats.get("play_count", 0))
+            payload["completion_count"] = int(stats.get("completion_count", 0))
+            payload["like_count"] = int(stats.get("like_count", 0))
+            payload["dislike_count"] = int(stats.get("dislike_count", 0))
     if game is not None:
         payload["game_id"] = game.id
         payload["started_at"] = utc_isoformat(game.created_at)
@@ -95,6 +104,47 @@ def _serialize(
     if include_share_token:
         payload["share_token"] = c.share_token
     return payload
+
+
+def _owner_stats(challenge_ids: list[str]) -> dict[str, dict]:
+    if not challenge_ids:
+        return {}
+
+    stats = {
+        challenge_id: {
+            "play_count": 0,
+            "completion_count": 0,
+            "like_count": 0,
+            "dislike_count": 0,
+        }
+        for challenge_id in challenge_ids
+    }
+
+    for row in db.session.execute(
+        db.select(
+            Game.challenge_id.label("challenge_id"),
+            func.count(Game.id).label("play_count"),
+            func.sum(case((Game.completed_at.is_not(None), 1), else_=0)).label("completion_count"),
+        )
+        .where(Game.challenge_id.in_(challenge_ids))
+        .group_by(Game.challenge_id)
+    ).all():
+        stats[row.challenge_id]["play_count"] = int(row.play_count or 0)
+        stats[row.challenge_id]["completion_count"] = int(row.completion_count or 0)
+
+    for row in db.session.execute(
+        db.select(
+            ChallengeRating.challenge_id.label("challenge_id"),
+            ChallengeRating.liked.label("liked"),
+            func.count(ChallengeRating.id).label("rating_count"),
+        )
+        .where(ChallengeRating.challenge_id.in_(challenge_ids))
+        .group_by(ChallengeRating.challenge_id, ChallengeRating.liked)
+    ).all():
+        key = "like_count" if row.liked else "dislike_count"
+        stats[row.challenge_id][key] = int(row.rating_count or 0)
+
+    return stats
 
 
 def _has_access(challenge: Challenge, user_id: str) -> bool:
@@ -118,10 +168,18 @@ class MyCustomChallengeListResource(Resource):
             .where(Challenge.created_by_user_id == uid)
             .order_by(Challenge.created_at.desc())
         ).scalars().all()
+        challenge_ids = [c.id for c in challenges]
+        stats_by_challenge_id = _owner_stats(challenge_ids)
         user = db.session.get(User, uid)
         creator_names_by_id = {uid: user.name} if user is not None else {}
         return [
-            _serialize(c, include_share_token=True, creator_names_by_id=creator_names_by_id)
+            _serialize(
+                c,
+                include_share_token=True,
+                user_id=uid,
+                stats_by_challenge_id=stats_by_challenge_id,
+                creator_names_by_id=creator_names_by_id,
+            )
             for c in challenges
         ], 200
 
@@ -208,6 +266,8 @@ class CustomChallengeListResource(Resource):
         ).scalars().all()
 
         challenge_ids = [c.id for c in challenges]
+        owner_challenge_ids = [c.id for c in challenges if c.created_by_user_id == uid]
+        stats_by_challenge_id = _owner_stats(owner_challenge_ids)
         creator_ids = {c.created_by_user_id for c in challenges if c.created_by_user_id}
         creator_names_by_id = (
             dict(db.session.execute(
@@ -231,6 +291,7 @@ class CustomChallengeListResource(Resource):
                 include_share_token=c.created_by_user_id == uid,
                 user_id=uid,
                 games_by_challenge_id=games_by_challenge_id,
+                stats_by_challenge_id=stats_by_challenge_id,
                 creator_names_by_id=creator_names_by_id,
             )
             for c in challenges

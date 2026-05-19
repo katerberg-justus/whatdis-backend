@@ -35,3 +35,7 @@ class Challenge(BaseModel):
         "UserChallengeAccess", back_populates="challenge",
         lazy="dynamic", cascade="all, delete-orphan",
     )
+    ratings = db.relationship(
+        "ChallengeRating", back_populates="challenge",
+        lazy="dynamic", cascade="all, delete-orphan",
+    )

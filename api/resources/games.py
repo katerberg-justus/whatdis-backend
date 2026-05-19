@@ -9,6 +9,7 @@ from api.common.challenge_enums import DIFFICULTY_LABEL
 from api.models.game import Game
 from api.models.guess import Guess
 from api.models.challenge import Challenge
+from api.models.challenge_rating import ChallengeRating
 from api.models.challenge_pack import ChallengePack
 from api.models.daily_challenge import DailyChallenge
 
@@ -177,6 +178,16 @@ def _serialize_many(games: list[Game]) -> list[dict]:
         ).scalars().all()
     } if challenge_ids else {}
 
+    ratings_by_challenge_id = {
+        row.challenge_id: ("like" if row.liked else "dislike")
+        for row in db.session.execute(
+            db.select(ChallengeRating.challenge_id, ChallengeRating.liked).where(
+                ChallengeRating.user_id == games[0].user_id,
+                ChallengeRating.challenge_id.in_(challenge_ids),
+            )
+        ).all()
+    } if challenge_ids else {}
+
     pack_ids = {c.pack_id for c in challenges.values() if c.pack_id}
     packs = {
         p.id: p
@@ -210,6 +221,7 @@ def _serialize_many(games: list[Game]) -> list[dict]:
             daily_pairs=daily_pairs,
             next_by_challenge_id=next_by_challenge_id,
             ordinal_by_challenge_id=ordinal_by_challenge_id,
+            ratings_by_challenge_id=ratings_by_challenge_id,
         )
         for g in games
     ]
@@ -224,6 +236,7 @@ def _serialize_with_context(
     daily_pairs: set,
     next_by_challenge_id: dict,
     ordinal_by_challenge_id: dict,
+    ratings_by_challenge_id: dict,
 ) -> dict:
     stats = guess_stats.get(g.id)
     guess_count = int(stats.guess_count) if stats else 0
@@ -254,6 +267,7 @@ def _serialize_with_context(
             challenge,
             completed=g.completed_at is not None,
             is_daily=is_daily,
+            rating=ratings_by_challenge_id.get(challenge.id) if challenge else None,
         ),
         "pack_id": challenge.pack_id if challenge else None,
         "pack_name": pack.name if pack else None,
@@ -273,6 +287,7 @@ def _serialize_challenge(
     challenge: Challenge | None,
     completed: bool = False,
     is_daily: bool = False,
+    rating: str | None = None,
 ) -> dict | None:
     if challenge is None:
         return None
@@ -283,6 +298,7 @@ def _serialize_challenge(
         "subject": challenge.subject if completed else None,
         "subject_hint": challenge.subject_hint if completed else None,
         "sticker": challenge.sticker if completed else None,
+        "rating": rating if completed else None,
     }
 
 
