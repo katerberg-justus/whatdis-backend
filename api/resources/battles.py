@@ -361,23 +361,32 @@ class BattleGuessListResource(Resource):
         )
         db.session.add(guess)
 
+        opponent_id = _other_player(battle, uid)
+
         if rc == WIN:
             battle.status = FINISHED
             battle.winner_id = uid
             battle.current_turn_id = None
         else:
-            battle.current_turn_id = _other_player(battle, uid)
+            battle.current_turn_id = opponent_id
             next_user_id = battle.current_turn_id
 
         db.session.commit()
-        if rc != WIN:
+        if rc == WIN:
+            send_to_user(opponent_id, {
+                "title": f"{user.name} has won",
+                "body": "Battle finished",
+                "url": f"/battles/{battle.id}",
+                "tag": f"battle-won-{battle.id}",
+            })
+        else:
             send_to_user(next_user_id, {
                 "title": "Your turn",
                 "body": user.name,
                 "url": f"/battles/{battle.id}",
                 "tag": f"battle-turn-{battle.id}",
             })
-        opponent = db.session.get(User, _other_player(battle, uid)) if rc == WIN else None
+        opponent = db.session.get(User, opponent_id) if rc == WIN else None
         new_achievements = check_after_battle_guess(user, won=(rc == WIN), opponent=opponent)
         db.session.commit()
         return {
