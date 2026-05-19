@@ -176,7 +176,7 @@
           "subject_hint": "Spanish saffron rice dish, often with seafood",
           "difficulty": 0,
           "is_active": true,
-          "sticker": null,
+          "sticker": "132bd82f-7e34-4c0d-b69b-551840d68d0b",
           "position": 1
         },
         {
@@ -185,7 +185,7 @@
           "subject_hint": "Japanese dish of vinegared rice with raw fish",
           "difficulty": 0,
           "is_active": true,
-          "sticker": null,
+          "sticker": "84c58974-96ce-48bb-b5f0-6d830e713c9d",
           "position": 2
         },
         {
@@ -194,7 +194,7 @@
           "subject_hint": "Thai stir-fried rice noodles with peanuts and lime",
           "difficulty": 0,
           "is_active": true,
-          "sticker": null,
+          "sticker": "394a853d-828f-49c7-8e33-92343a830e4d",
           "position": 3
         },
         {
@@ -203,7 +203,7 @@
           "subject_hint": "Mexican folded tortillas with various fillings",
           "difficulty": 0,
           "is_active": true,
-          "sticker": null,
+          "sticker": "f9988e8d-397f-42dd-abdf-91f6e6dec4a4",
           "position": 4
         },
         {
@@ -212,7 +212,7 @@
           "subject_hint": "North African steamed semolina, often served with stew",
           "difficulty": 0,
           "is_active": true,
-          "sticker": null,
+          "sticker": "cd069bcf-899a-4e89-9f18-592cea3e3e7f",
           "position": 5
         },
         {
@@ -221,7 +221,7 @@
           "subject_hint": "Japanese noodle soup with broth, egg, and pork",
           "difficulty": 0,
           "is_active": true,
-          "sticker": null,
+          "sticker": "d028e2d2-7aa9-46c3-9260-82b2517cab1f",
           "position": 6
         },
         {
@@ -230,7 +230,7 @@
           "subject_hint": "Middle Eastern dip made from chickpeas and tahini",
           "difficulty": 0,
           "is_active": true,
-          "sticker": null,
+          "sticker": "257de11c-d54f-4fd2-8127-f4c674afc663",
           "position": 7
         },
         {
@@ -239,7 +239,7 @@
           "subject_hint": "Latin American raw fish cured in citrus juices",
           "difficulty": 1,
           "is_active": true,
-          "sticker": null,
+          "sticker": "7eb80a79-cf5a-4cd5-8441-7232d1df89f5",
           "position": 8
         },
         {
@@ -248,7 +248,7 @@
           "subject_hint": "Indian spiced rice dish with meat or vegetables",
           "difficulty": 1,
           "is_active": true,
-          "sticker": null,
+          "sticker": "6bb3f6e3-87e8-4cf7-a0d5-37970786b83d",
           "position": 9
         },
         {
@@ -257,7 +257,7 @@
           "subject_hint": "Vietnamese noodle soup with herbs and broth",
           "difficulty": 1,
           "is_active": true,
-          "sticker": null,
+          "sticker": "5a3c46ac-cfc9-4d24-aef7-98300b8170be",
           "position": 10
         },
         {
@@ -266,7 +266,7 @@
           "subject_hint": "Hungarian paprika-spiced meat stew",
           "difficulty": 1,
           "is_active": true,
-          "sticker": null,
+          "sticker": "87f09227-812f-445f-90ac-ecde03bb19c4",
           "position": 11
         },
         {
@@ -275,7 +275,7 @@
           "subject_hint": "Greek layered eggplant and minced meat casserole",
           "difficulty": 1,
           "is_active": true,
-          "sticker": null,
+          "sticker": "603734d1-a4a1-4439-b22a-bcd5308426e0",
           "position": 12
         },
         {
@@ -284,7 +284,7 @@
           "subject_hint": "Middle Eastern deep-fried chickpea balls, often in pita",
           "difficulty": 1,
           "is_active": true,
-          "sticker": null,
+          "sticker": "f0c1c68a-4f8e-4ede-a235-83c03b3ca0a5",
           "position": 13
         },
         {
@@ -293,7 +293,7 @@
           "subject_hint": "Moroccan slow-cooked stew named after its clay pot",
           "difficulty": 1,
           "is_active": true,
-          "sticker": null,
+          "sticker": "bd82c738-e4a2-4682-97c9-55005dc80d24",
           "position": 14
         },
         {
@@ -302,7 +302,7 @@
           "subject_hint": "Latin American stuffed pastry, baked or fried",
           "difficulty": 1,
           "is_active": true,
-          "sticker": null,
+          "sticker": "1550b137-c440-46ae-9694-f2765a762352",
           "position": 15
         },
         {
@@ -311,7 +311,7 @@
           "subject_hint": "French dish of snails baked in garlic butter",
           "difficulty": 2,
           "is_active": true,
-          "sticker": null,
+          "sticker": "01cf9332-6251-4ee9-9a79-04a1b56739cb",
           "position": 16
         },
         {
@@ -320,7 +320,7 @@
           "subject_hint": "Scottish savory pudding made with sheep offal",
           "difficulty": 2,
           "is_active": true,
-          "sticker": null,
+          "sticker": "95c3d581-a590-42e7-9a41-ed7204cb4190",
           "position": 17
         },
         {
@@ -329,7 +329,7 @@
           "subject_hint": "Italian soft dumplings made from potato",
           "difficulty": 2,
           "is_active": true,
-          "sticker": null,
+          "sticker": "5c8441ee-7b5b-4865-a2cf-66a055c9c5fa",
           "position": 18
         },
         {
@@ -338,7 +338,7 @@
           "subject_hint": "Indonesian slow-cooked spicy coconut beef",
           "difficulty": 2,
           "is_active": true,
-          "sticker": null,
+          "sticker": "32c199c7-7551-49ee-9c24-2499786a4ccd",
           "position": 19
         },
         {
@@ -347,7 +347,7 @@
           "subject_hint": "Layered phyllo pastry with nuts and syrup, from the Middle East and Balkans",
           "difficulty": 2,
           "is_active": true,
-          "sticker": null,
+          "sticker": "bc9fca64-70be-473d-95aa-a2cada9c9e86",
           "position": 20
         }
       ]

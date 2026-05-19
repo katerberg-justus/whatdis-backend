@@ -70,6 +70,10 @@ class User(BaseModel):
         "ChallengeRating", back_populates="user",
         lazy="dynamic", cascade="all, delete-orphan",
     )
+    identities = db.relationship(
+        "UserIdentity", back_populates="user",
+        lazy="dynamic", cascade="all, delete-orphan",
+    )
     referrer = db.relationship(
         "User",
         remote_side="User.id",

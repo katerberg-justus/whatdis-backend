@@ -1,11 +1,18 @@
 def register_root_resources(api):
-    from api.resources.auth import LoginResource, RefreshResource, LogoutResource, GuestLoginResource
+    from api.resources.auth import (
+        LoginResource,
+        RefreshResource,
+        LogoutResource,
+        GuestLoginResource,
+        GoogleAuthResource,
+    )
     from api.resources.subscriptions import StripeWebhookResource
 
     api.add_resource(LoginResource,      "/auth/login")
     api.add_resource(GuestLoginResource, "/auth/guest")
     api.add_resource(RefreshResource,    "/auth/refresh")
     api.add_resource(LogoutResource,     "/auth/logout")
+    api.add_resource(GoogleAuthResource, "/auth/google")
 
     api.add_resource(StripeWebhookResource, "/webhooks/stripe")
 
@@ -56,6 +63,7 @@ def register_resources(api):
     )
     from api.resources.analytics import AnalyticsResource
     from api.resources.challenge_ratings import ChallengeRatingResource
+    from api.resources.auth import IdentityLinkResource
     from api.resources.custom_challenges import (
         CustomChallengeListResource,
         MyCustomChallengeListResource,
@@ -75,6 +83,7 @@ def register_resources(api):
     api.add_resource(PushSubscriptionListResource, "/me/push-subscriptions")
     api.add_resource(PushSubscriptionResource,     "/me/push-subscriptions/<string:subscription_id>")
     api.add_resource(PushVapidPublicKeyResource,   "/push/vapid-public-key")
+    api.add_resource(IdentityLinkResource,         "/me/identities/<string:provider>")
 
     # Users
     api.add_resource(UserListResource,         "/users")

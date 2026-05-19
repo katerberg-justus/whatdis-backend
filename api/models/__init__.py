@@ -13,6 +13,7 @@ from api.models.user_subscription import UserSubscription
 from api.models.user_energy_purchase import UserEnergyPurchase
 from api.models.push_subscription import PushSubscription
 from api.models.challenge_rating import ChallengeRating
+from api.models.user_identity import UserIdentity
 
 __all__ = [
     "User", "Friendship",
@@ -23,4 +24,5 @@ __all__ = [
     "UserEnergyPurchase",
     "PushSubscription",
     "ChallengeRating",
+    "UserIdentity",
 ]
